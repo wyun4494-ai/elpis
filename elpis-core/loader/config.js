@@ -18,7 +18,6 @@ const { sep } = path
 module.exports = (app) => {
   // 找到config目录
   const configPath = path.resolve(app.baseDir, `.${sep}config`);
-
   // 获取default.config
   let defaultConfig = {};
   try {
@@ -29,11 +28,11 @@ module.exports = (app) => {
   // 获取env.config
   let envConfig = {};
   try {
-    if (app.env.isLocal) { // 本地
+    if (app.env.isLocal()) { // 本地
       envConfig = require(path.resolve(configPath, `.${sep}config.local.js`));
-    } else if (app.env.isBeta) { // 测试
+    } else if (app.env.isBeta()) { // 测试
       envConfig = require(path.resolve(configPath, `.${sep}config.beta.js`));
-    } else if (app.env.isProduction) { // 生产
+    } else if (app.env.isProduction()) { // 生产
       envConfig = require(path.resolve(configPath, `.${sep}config.prod.js`));
     }
   } catch (e) {

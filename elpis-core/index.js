@@ -71,7 +71,7 @@ module.exports = {
       require(`${app.businessPath}${sep}middleware.js`)(app);
       console.log(`-- [start] load global middleware done --`);
     } catch (e) {
-      console.log(`-- [exception] there is no middleware file --`);
+      console.log(`-- [exception] there is no global middleware file --`);
     }
 
     // 加载路由
