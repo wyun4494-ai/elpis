@@ -1,6 +1,13 @@
 const path = require('path');
-// 模板渲染引擎
+// 模板渲染引擎中间件
 module.exports = (app) => {
+  // 引入koa-static中间件，用于提供静态文件服务
+  const KoaStatic = require('koa-static');
+  // 将app/public目录设置为静态文件服务目录
+  // 这样可以直接通过URL访问该目录下的文件，如CSS、JS、图片等
+  // path.resolve(process.cwd(), './app/public')将相对路径解析为绝对路径
+  app.use(KoaStatic(path.resolve(process.cwd(), './app/public')))
+
   // 引入koa-nunjucks-2中间件
   const koaNunjucks = require('koa-nunjucks-2');
   app.use(koaNunjucks({
