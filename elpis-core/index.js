@@ -14,8 +14,7 @@ const routerSchemaLoader = require('./loader/router-schema');
 const routerLoader = require('./loader/router');
 const controllerLoader = require('./loader/controller');
 const serviceLoader = require('./loader/service');
-const extendLoader = require('./loader/extend');
-
+const extendLoader = require('./loader/extend'); 
 module.exports = {
   /**
    * 启动项目
