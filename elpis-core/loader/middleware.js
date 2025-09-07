@@ -29,8 +29,8 @@ module.exports = (app) => {
     // 提取文件名
     let name = path.resolve(file);
 
-    // 截取路径 => app/middlewares/custom-moudle/costom-middleware.js => custom-moudle/costom-middleware
-    name = name.substring(name.lastIndexOf(`middlewares${sep}`) + `middlewares${sep}`.length, name.lastIndexOf('.'))
+    // 截取路径 => app/middleware/custom-moudle/costom-middleware.js => custom-moudle/costom-middleware
+    name = name.substring(name.lastIndexOf(`middleware${sep}`) + `middleware${sep}`.length, name.lastIndexOf('.'))
 
     // 把'-'统一成驼峰式,custom-moudle/costom-middleware => customMoudle/costomMiddleware
     name = name.replace(/[_-][a-z]/ig, (s) => s.substring(1).toUpperCase());

@@ -1,5 +1,6 @@
 module.exports = (app) => {
-  return class projectService {
+  const BaseService = require('./base')(app);
+  return class projectService extends BaseService {
     async getList() {
       // 返回模拟的项目列表数据
       return [

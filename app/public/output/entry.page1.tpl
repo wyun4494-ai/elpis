@@ -16,6 +16,7 @@
 
 
     <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
     <script>
       try {
         window.env = document.getElementById('env').value
@@ -26,9 +27,22 @@
       }
 
       const handleClick = () => {
-        axios.get('/api/project/list').then(res => {
-            console.log(res)
+
+        const signKey = 'elpis-sign-key';
+        const st = Date.now()
+
+        axios.request({
+          url: '/api/project/list',
+          method: 'get',
+          params: { proj_key: 'test' },
+          headers: {
+            s_t: st,
+            s_sign: md5(`${signKey}_${st}`),
+          }
         })
+        // axios.get('/api/project/list').then(res => {  
+        //     console.log(res)
+        // })
       }
     </script>
 </body>

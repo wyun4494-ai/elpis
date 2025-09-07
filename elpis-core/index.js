@@ -48,7 +48,15 @@ module.exports = {
     // 加载路由配置
     routerSchemaLoader(app);
     console.log(`-- [start] routerSchema done --`);
+    
+    // 加载配置
+    configLoader(app);
+    console.log(`-- [start] config done --`);
         
+    // 加载扩展
+    extendLoader(app);
+    console.log(`-- [start] extend done --`);
+    
     // 加载控制器
     controllerLoader(app);
     console.log(`-- [start] controller done --`);
@@ -57,14 +65,6 @@ module.exports = {
     serviceLoader(app);
     console.log(`-- [start] service done --`);
 
-    // 加载配置
-    configLoader(app);
-    console.log(`-- [start] config done --`);
-    
-    // 加载扩展
-    extendLoader(app);
-    console.log(`-- [start] extend done --`);
-    
     // 注册全局中间件
     try {
       require(`${app.businessPath}${sep}middleware.js`)(app);

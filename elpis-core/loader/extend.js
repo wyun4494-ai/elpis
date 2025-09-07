@@ -1,6 +1,6 @@
-const path = require("path")
-const glob = require("glob")
-const {sep} = path
+  const path = require("path")
+  const glob = require("glob")
+  const {sep} = path
 /**
  * entend loader
  * @param {object} app Koa 实例
@@ -17,7 +17,7 @@ module.exports = (app) => {
    // 拼接extend目录的完整路径 (如: D:\Elpis\app\extend)
   const extendPath = path.resolve(app.businessPath, `.${sep}extend`)
   // 使用glob模式匹配查找extend目录下的所有.js文件
-  const fileList = glob.sync(path.resolve(extendPath, `.${sep}**${sep}.js`))
+  const fileList = glob.sync(path.resolve(extendPath, `.${sep}**${sep}**.js`))
 
   // 遍历所有找到的扩展文件
   // const extend = {}
@@ -41,6 +41,7 @@ module.exports = (app) => {
     // 加载扩展模块并传入app实例，将返回结果挂载到app上
     // 例如: app.customExtend = require('custom-extend.js')(app)
     app[name] = require(path.resolve(file))(app)
+
   })
   
 }
