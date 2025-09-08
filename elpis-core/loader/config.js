@@ -23,7 +23,8 @@ module.exports = (app) => {
   try {
     defaultConfig = require(path.resolve(configPath, `.${sep}config.default.js`));
   } catch (e) {
-    console.log('[exception] there is no default.config.js');
+    console.log(`[exception] there is no default.config.js:${e.message})`);
+    console.debug(`[exception] Stack trace: ${e.stack}`); 
   }
   // 获取env.config
   let envConfig = {};
@@ -36,7 +37,9 @@ module.exports = (app) => {
       envConfig = require(path.resolve(configPath, `.${sep}config.prod.js`));
     }
   } catch (e) {
-    console.log('[exception] there is no env.config.js');
+      const envName = app.env.isLocal() ? 'local' : app.env.isBeta() ? 'beta' : 'prod';
+      console.log(`[exception] Failed to load config.${envName}.js: ${e.message}`);
+      console.debug(`[exception] Stack trace: ${e.stack}`);
   }
   // 覆盖并加载 config 配置
   app.config = Object.assign({}, defaultConfig, envConfig);

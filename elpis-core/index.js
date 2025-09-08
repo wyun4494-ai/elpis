@@ -8,13 +8,14 @@ const { sep } = path; // 处理不同操作系统的斜杠
 const env = require('./env');
 
 // 引入加载器
-const middlewareLoader = require('./loader/middleware');
 const configLoader = require('./loader/config');
-const routerSchemaLoader = require('./loader/router-schema');
-const routerLoader = require('./loader/router');
-const controllerLoader = require('./loader/controller');
-const serviceLoader = require('./loader/service');
 const extendLoader = require('./loader/extend'); 
+const middlewareLoader = require('./loader/middleware');
+const routerSchemaLoader = require('./loader/router-schema');
+const serviceLoader = require('./loader/service');
+const controllerLoader = require('./loader/controller');
+const routerLoader = require('./loader/router');
+
 module.exports = {
   /**
    * 启动项目
@@ -41,14 +42,6 @@ module.exports = {
     app.env = env();
     console.log(`-- [start] env: ${app.env.get()} --`);
 
-    // 加载中间件
-    middlewareLoader(app);
-    console.log(`-- [start] middleware done --`);
-    
-    // 加载路由配置
-    routerSchemaLoader(app);
-    console.log(`-- [start] routerSchema done --`);
-    
     // 加载配置
     configLoader(app);
     console.log(`-- [start] config done --`);
@@ -57,13 +50,21 @@ module.exports = {
     extendLoader(app);
     console.log(`-- [start] extend done --`);
     
-    // 加载控制器
-    controllerLoader(app);
-    console.log(`-- [start] controller done --`);
+    // 加载中间件
+    middlewareLoader(app);
+    console.log(`-- [start] middleware done --`);
+    
+    // 加载路由配置
+    routerSchemaLoader(app);
+    console.log(`-- [start] routerSchema done --`);
 
     // 加载服务 
     serviceLoader(app);
     console.log(`-- [start] service done --`);
+
+    // 加载控制器
+    controllerLoader(app);
+    console.log(`-- [start] controller done --`);
 
     // 注册全局中间件
     try {
