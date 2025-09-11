@@ -85,7 +85,7 @@ module.exports = {
         }
       }
     }, {
-      test: /\. css$/,
+      test: /\.css$/,
       use: [{
         loader: 'style-loader'
       }, {
@@ -121,7 +121,11 @@ module.exports = {
       $common: path.resolve(process.cwd(), './app/pages/common'),
       $widgets: path.resolve(process.cwd(), './app/pages/widgets'),
       $store:  path.resolve(process.cwd(), './app/pages/store'),
-    } 
+    },
+    // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
+      fallback: {
+        "process": false
+      }
   },
 
 
@@ -134,7 +138,9 @@ module.exports = {
 
     new webpack.ProvidePlugin({
       // 配置第三方库暴露到 window context 下 
-      Vue: 'vue'
+      Vue: 'vue',
+      axios: 'axios',
+      _: 'lodash'
     }),
 
     new webpack.DefinePlugin({

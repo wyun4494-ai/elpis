@@ -1,10 +1,10 @@
 <template>
   <h1>page2</h1>
-  <input
+  <el-input
     v-model="content"
-    type="text"
+    style="width: 300px;"
     placeholder="请输入内容"
-  >
+  />
   <div>{{ content }}</div>
 </template>
 
