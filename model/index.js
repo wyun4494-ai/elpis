@@ -24,7 +24,8 @@
     if (file.indexOf('index.js') > -1) {  return; }
 
     // 区分 model 文件和 project 文件
-    const type = file.indexOf(`${sep}project${sep}`) > -1 ? 'project' : 'model';
+    // const type = file.indexOf(`${sep}project${sep}`) > -1 ? 'project' : 'model';
+    
   })
 
   return modelList;
