@@ -9,6 +9,7 @@ const pageEntries = {}
 const HtmlWebpackPluginList = []
 // 获取 app/pages 目录下所有入口文件（entry.xx.js）
 const entryList = path.resolve(process.cwd(), './app/pages/**/entry.*.js');
+console.log(entryList)
 glob.sync(entryList).forEach(file => {
   // 构造 entry
   const entryName = path.basename(file, '.js')
