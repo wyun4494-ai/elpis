@@ -16,21 +16,21 @@ module.exports = {
       menu: [{
         key: 'coupon',
         name: '优惠劵',
-        menuType: 'moudle',
+        menuType: 'module',
         customConfig: {
           path: '/todo'
         }
       }, {
         key: 'limited',
         name: '限量购',
-        menuType: 'moudle',
+        menuType: 'module',
         customConfig: {
           path: '/todo'
         }
       }, {
         key: 'festival',
         name: '节日活动',
-        menuType: 'moudle',
+        menuType: 'module',
         customConfig: {
           path: '/todo'
         }

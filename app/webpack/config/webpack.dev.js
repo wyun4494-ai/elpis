@@ -1,6 +1,6 @@
-const  merge  = require('webpack-merge')
 const webpack = require('webpack')
 const path = require('path')
+const merge = require('webpack-merge')
 
 // 基类配置
 const baseConfig = require('./webpack.base.js')
@@ -34,8 +34,8 @@ const webpackDevConfig = merge(baseConfig, {
 
   // 开发阶段 output 配置
   output: { 
-    // 定义输出文件名格式：在 js 目录下生成 [入口名称]_[8位chunkhash].bundle.js
-    filename: 'js/[name]_[chunkhash:8].bundle.js',
+    // 定义输出文件名格式：在 js 目录下生成固定名称的bundle.js
+    filename: 'js/[name].bundle.js',
     // 定义输出文件的绝对路径：
     path: path.join(process.cwd(), './app/public/dist/dev/'),
     // 外部资源公共路径
@@ -49,7 +49,7 @@ const webpackDevConfig = merge(baseConfig, {
     new webpack.HotModuleReplacementPlugin({
       // 启用多步编译模式
       multiStep: true  
-    })
+    })  
   ]
 })
 

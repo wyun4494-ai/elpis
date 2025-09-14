@@ -78,6 +78,7 @@ module.exports = {
     routerLoader(app);
     console.log(`-- [start] router done --`);
 
+    
     // 启动服务
     try {
       const port = process.env.PORT || 8080;
@@ -87,5 +88,7 @@ module.exports = {
     } catch(e) {
       console.error(e);
     }
+
+    return app;
   }
 }

@@ -3,6 +3,7 @@ import { createApp } from "vue";
 // 引入 elementUI
 import ElementPlus from "element-plus";
 import "element-plus/theme-chalk/index.css";
+import 'element-plus/theme-chalk/dark/css-vars.css'
 import './asserts/custom.css'
 import pinia from '$store/index.js'
 import { createWebHashHistory, createRouter } from 'vue-router'
@@ -16,7 +17,7 @@ import { createWebHashHistory, createRouter } from 'vue-router'
 export default (pageComponent, { routes, libs } = {}) => { 
   const app = createApp(pageComponent);
 
-  // 挂载 elementUI
+  // 挂载 elementUI 
   app.use(ElementPlus);
   // 挂载 pinia
   app.use(pinia);
