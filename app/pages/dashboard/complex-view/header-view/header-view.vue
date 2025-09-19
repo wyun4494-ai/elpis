@@ -1,6 +1,6 @@
 <template>
   <!-- 引用布局模板、 增加插槽部分 -->
-  <headerContainer :title="projName">
+  <header-container :title="projName">
     <!-- 中间菜单区域 -->
     <template #menu-content>
       <!-- 根据 menuStore.menuList 渲染  -->
@@ -13,7 +13,7 @@
         <template
           v-for="item in menuStore.menuList"
         >
-          <SubMenu
+          <sub-menu
             v-if="item.subMenu && item.subMenu.length > 0"
             :menu-item="item"
           />
@@ -58,19 +58,17 @@
     </template>
     <!-- 主内容区域 -->
     <template #main-content>
-      <slot name="main-content">
-        <!--  -->
-      </slot>
+      <slot name="main-content" />
     </template>
-  </headerContainer>
+  </header-container>
 </template>
 
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
 import { ref, watch, onMounted } from 'vue'
 import {  useRoute } from 'vue-router'
-import headerContainer from '$widgets/header-container/header-container.vue'
-import SubMenu from './complex-view/sub-menu.vue'
+import HeaderContainer from '$widgets/header-container/header-container.vue'
+import SubMenu from './complex-view/sub-menu/sub-menu.vue'
 import { useProjectStore } from '$store/project.js'
 import { useMenuStore } from '$store/menu.js'
 
@@ -89,6 +87,15 @@ const emit = defineEmits(['menu-select'])
  
 const activeKey = ref('')
 
+// 设置 activeKey
+const setActiveKey = function() {
+  const menuItem = menuStore.findMenuItem({
+    key: 'key',
+    value: route.query.key
+  }) 
+  activeKey.value = menuItem?.key 
+}
+
 // 监听路由变化，设置 activeKey
 watch( () => route.query.key, () => {
   setActiveKey()
@@ -102,14 +109,7 @@ onMounted(() => {
   setActiveKey()
 })
 
-// 设置 activeKey
-const setActiveKey = function() {
-  const menuItem = menuStore.findMenuItem({
-    key: 'key',
-    value: route.query.key
-  }) 
-  activeKey.value = menuItem?.key 
-}
+
 // 监听菜单选择
 const onMenuSelect = function(menuKey) {
   const menuItem = menuStore.findMenuItem({

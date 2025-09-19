@@ -1,3 +1,4 @@
+
 module.exports = {
   name: '拼多多',
   desc: '拼多多电商系统',
@@ -24,13 +25,42 @@ module.exports = {
         }
       }, {
         key: 'sider-report', 
-        name: '报表分析',
+        name: '信息查询',
         menuType: 'module',
         moduleType: 'iframe',
         iframeConfig: {
           path: 'https://www.baidu.com/'
         }
-      }]
+      },{
+    key: 'shop-settings',
+    name: '店铺设置', 
+    menuType: 'group',
+    subMenu: [{
+      key: 'info',
+      name: '店铺信息',
+      menuType: 'module',
+      moduleType: 'custom',
+      customConfig: {
+        path: '/todo'
+      }
+    }, {
+      key: 'quality',
+      name: '资质信息',
+      menuType: 'module',
+      moduleType: 'iframe',
+      iframeConfig: {
+        path: 'http://www.baidu.com'
+      }
+    }]
+  }]
+    }
+  },{
+    key: 'search',
+    name: '信息查询',
+    menuType: 'module',
+    moduleType: 'iframe',
+    iframeConfig: {
+      path: 'https://www.baidu.com/'
     }
   }]
 }

@@ -1,5 +1,5 @@
 <template>
-  <HeaderContainer title="项目列表">
+  <header-container title="项目列表">
     <template #main-content>
       <div v-loading="loading">
         <div
@@ -54,7 +54,7 @@
         </div>
       </div>
     </template>
-  </HeaderContainer>
+  </header-container>
 </template>
 
 <script setup>

@@ -1,6 +1,6 @@
 <template>
   <el-config-provider :locale="zhCn">
-    <headerView 
+    <header-view 
       :proj-name="projName"
       @menu-select="onMenuSelect"
     >
@@ -8,13 +8,13 @@
       <template #main-content>
         <router-view />
       </template>
-    </headerView>
+    </header-view>
   </el-config-provider>
 </template>
 
 <script setup>
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import headerView from './complex-view/header-view/header-view.vue'
+import HeaderView from './complex-view/header-view/header-view.vue'
 import { ref, onMounted } from 'vue'
 import { useProjectStore } from '$store/project.js'
 import { useMenuStore } from '$store/menu.js'
@@ -92,5 +92,7 @@ const onMenuSelect = function(menuItem) {
 </script>
 
 <style scoped lang="less">
-
+:depp(el-main) {
+  padding: 0%;
+}
 </style>
