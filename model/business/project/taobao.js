@@ -6,7 +6,7 @@ module.exports = {
     key: 'order',
     moduleType: 'iframe',
     iframeConfig: {
-      path: 'https://www.pinduoduo.com/'
+      path: 'https://leetcode.cn/'
     }
   }, {
     key: 'operating',

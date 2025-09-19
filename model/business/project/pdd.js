@@ -29,7 +29,7 @@ module.exports = {
         menuType: 'module',
         moduleType: 'iframe',
         iframeConfig: {
-          path: 'https://www.baidu.com/'
+          path: 'https://leetcode.cn/'
         }
       },{
     key: 'shop-settings',
@@ -49,7 +49,7 @@ module.exports = {
       menuType: 'module',
       moduleType: 'iframe',
       iframeConfig: {
-        path: 'http://www.baidu.com'
+        path: 'https://leetcode.cn/'
       }
     }]
   }]
@@ -60,7 +60,7 @@ module.exports = {
     menuType: 'module',
     moduleType: 'iframe',
     iframeConfig: {
-      path: 'https://www.baidu.com/'
+      path: 'https://leetcode.cn/'
     }
   }]
 }

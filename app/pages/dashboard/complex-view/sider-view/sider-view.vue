@@ -81,15 +81,13 @@ const setActiveKey = function() {
 }
 
 // 监听路由变化，设置 activeKey
-watch( () => route.query.key, () => {
+watch( [
+  () => route.query.key,
+  () => menuStore.getMenuList
+], () => {
   setActiveKey()
   setMenuList()
-})
-//  当页面加载后,接口数据加载后,也要设置 activeKey 
-watch( () => menuStore.menuList, () => {
-  setActiveKey()
-  setMenuList()
-})
+},{ deep: true })
 
 // 当页面加载完成并且该组件被挂载到DOM上时
 onMounted(() => {
