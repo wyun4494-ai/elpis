@@ -1,6 +1,7 @@
 module.exports = {
-  name: 'taobao',
+  name: '淘宝',
   desc: '淘宝电商系统',
+  homePage: '/todo?proj_key=taobao&key=order',
   menu: [{
     key: 'order',
     moduleType: 'iframe',
@@ -17,6 +18,7 @@ module.exports = {
         key: 'coupon',
         name: '优惠劵',
         menuType: 'module',
+        moduleType: 'custom',
         customConfig: {
           path: '/todo'
         }
@@ -24,6 +26,7 @@ module.exports = {
         key: 'limited',
         name: '限量购',
         menuType: 'module',
+        moduleType: 'custom',
         customConfig: {
           path: '/todo'
         }
@@ -31,6 +34,7 @@ module.exports = {
         key: 'festival',
         name: '节日活动',
         menuType: 'module',
+        moduleType: 'custom',
         customConfig: {
           path: '/todo'
         }

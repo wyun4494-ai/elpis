@@ -17,10 +17,12 @@
     "beta": "set _ENV=beta&& nodemon index.js",
     "prod": "set _ENV=production&& nodemon index.js",
     "build:dev": "node --max_old_space_size=4096 ./app/webpack/dev.js",
-    "build:prod": "node ./app/webpack/prod.js"    
-  },  
+    "build:prod": "node ./app/webpack/prod.js"
+  },
   "dependencies": {
     "@babel/core": "^7.24.0",
+    "@babel/runtime": "^7.28.4",
+    "@element-plus/icons-vue": "^2.3.2",
     "ajv": "^6.10.2",
     "axios": "^0.19.2",
     "echarts": "^5.5.0",

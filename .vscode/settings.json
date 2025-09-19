@@ -1,0 +1,9 @@
+{
+  "oxc.enable": true,
+  "cSpell.words": [
+    "获取和modelitem里的key值相同的projectitem",
+    "chunkhash",
+    "elpis",
+    "happypack"
+  ]
+}

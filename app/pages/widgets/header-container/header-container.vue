@@ -1,4 +1,5 @@
 <template>
+  <!-- 布局模板 -->
   <el-container class="header-container">
     <!--  头部 -->
     <el-header class="header">
@@ -21,10 +22,9 @@
             {{ title }}
           </el-row>
         </el-row>
-        <!-- 插槽： 菜单区域   -->
-        <slot class="menu-content">
-          <!--  -->
-        </slot>
+
+        <!-- 插槽： 中间菜单区域   -->
+        <slot name="menu-content" />
         <!-- 右上方 设置区域 -->
         <el-row
           type="flex"
@@ -33,9 +33,7 @@
           class="setting-panel"
         >
           <!-- 插槽： 设置区域 -->
-          <slot name="setting-content">
-            <!--  -->
-          </slot>
+          <slot name="setting-content" />
           <img 
             src="./asserts/avatar.png"
             class="avatar"
@@ -53,6 +51,8 @@
         </el-row>
       </el-row>
     </el-header>
+    
+    <!-- 主要区域 -->
     <el-main class="main-container">
       <!-- 插槽: 外部扩展区域 -->
       <slot name="main-content" />
@@ -69,7 +69,7 @@ defineProps({
   }
 })
 
-const userName = ref('管理员')
+const userName = ref('小吴')
 const handleUserCommand = function(event) {
   console.log(event)
  }
@@ -86,7 +86,7 @@ const handleUserCommand = function(event) {
   .header {
     max-height: 120px;
     border-bottom: 1px solid #e8e8e8;
-
+    // background-color: #e8e8e8;
     // 左上方title
     .header-row {
       height: 60px;
