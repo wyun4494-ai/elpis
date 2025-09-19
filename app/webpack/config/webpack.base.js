@@ -66,6 +66,9 @@ module.exports = {
               browsers: ['last 2 versions', 'ie >= 11']
             },
           }]
+        ],
+        plugins: [
+          '@babel/plugin-transform-runtime'
         ]
         }
       }
@@ -188,6 +191,7 @@ module.exports = {
           reuseExistingChunk: true
         },
         common: { // 公共模块
+          test: /[\\/]common|widgets[\\/]/, // 匹配 common 或 widgets 目录下的模块为公共模块
           name: 'common', // 模块名称
           minChunks: 2, //  引用过两次即被归为公共模块
           minSize: 1, // 最小分割文件

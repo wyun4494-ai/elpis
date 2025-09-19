@@ -70,9 +70,9 @@ const projectExtendModel = (model, project) => {
      // 处理project类型的文件
      if (type === 'project') {
       // 从文件路径中提取model名称，例如从 model/business/project/pdd.js 提取 business
-      const modelKey = file.match(/model[\/\\]([^\/\\]+)[\/\\]project/)?.[1];
+      const modelKey = file.match(/model[/\\]([^/\\]+)[/\\]project/)?.[1];
       // 从文件路径中提取project名称，例如从 model/business/project/pdd.js 提取 pdd
-      const projectKey = file.match(/project[\/\\]([^\/\\]+)\.js/)?.[1];
+      const projectKey = file.match(/project[/\\]([^/\\]+)\.js/)?.[1];
       
       // 在modelList中查找是否已存在该modelKey对应的modelItem
       let modelItem = modelList.find(item => item.model?.key === modelKey)
@@ -89,6 +89,7 @@ const projectExtendModel = (model, project) => {
       modelItem.project[projectKey] = require(path.resolve(file));
       // 为加载的project对象添加key属性，标识其名称
       modelItem.project[projectKey].key = projectKey
+      modelItem.project[projectKey].modelKey = modelKey
     }
     
     // 处理model类型的文件

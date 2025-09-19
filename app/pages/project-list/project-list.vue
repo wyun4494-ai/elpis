@@ -16,6 +16,7 @@
                 {{ item.model?.name }}
               </div>
             </el-row>
+            <!-- 分割线 -->
             <div class="divider" />
           </div>
           <!-- 展示 project -->
@@ -28,6 +29,7 @@
               :key="projectItem?.key"
               class="project-card"
             >
+              <!-- 标题 -->
               <template #header>
                 <div class="title">
                   <span>{{ projectItem.name }}</span>
@@ -61,7 +63,7 @@ import $curl from '$common/curl.js';
 import HeaderContainer from '$widgets/header-container/header-container.vue';
 
 const loading = ref(false);
-const modelList = ref([]);
+const modelList = ref([]);  
 
 async function getModelList() {
   loading.value = true;
@@ -71,9 +73,10 @@ async function getModelList() {
       url: '/api/project/model_list',
       errorMessage: '获取项目列表失败'
     });
-    if (res && res.success && res.data) {
-      modelList.value = res.data;
+    if (!res || !res.success || !res.data) {
+      return;
     } 
+    modelList.value = res.data;
   } catch (error) {
     console.error('获取项目列表异常:', error);
   } finally {
@@ -81,15 +84,15 @@ async function getModelList() {
   }
 }
 
-const onEnter = (projectItem) => {
-  if (projectItem && projectItem.name) {
-    console.log(`跳转到${projectItem.name}项目`);
-  }
-};
-
 onMounted(() => {
   getModelList();
 });
+const onEnter = (projectItem) => {
+  // 获取当前页面的 origin = 域名
+  const { origin } = window.location;
+  // 跳转到对应项目的首页
+  window.open(`${origin}/view/dashboard#${projectItem.homePage}`);
+};
 </script>
 
 <style lang="less">

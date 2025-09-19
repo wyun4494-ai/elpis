@@ -29,9 +29,9 @@ const webpackProdConfig = merge(baseConfig, {
     // 定义输出文件名格式：在 js 目录下生成 [入口名称]_[8位chunkhash].bundle.js
     filename: 'js/[name]_[chunkhash:8].bundle.js',
     // 定义输出文件的绝对路径：当前工作目录下的 ./app/public/dist/prod
-    path: path.join(process.cwd(), './app/public/dist/prod'),
+    path: path.join(process.cwd(), './app/public/dist/prod/'),
     // 指定浏览器访问资源的公共路径前缀
-    publicPath: '/dist/prod',
+    publicPath: '/dist/prod/',
     // 设置跨域加载脚本时的 credentials 标志为 anonymous（不发送 cookies 等）
     crossOriginLoading: 'anonymous'
   },
