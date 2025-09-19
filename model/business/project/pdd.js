@@ -8,7 +8,12 @@ module.exports = {
     name: '商品管理(拼多多)'
   }, {
     key: 'client',
-    name: '客户管理(拼多多)'
+    name: '客户管理(拼多多)',
+    moduleType: 'schema',
+    schemaConfig: {
+      api: '/api/client',
+      schema: {}
+    }
   }, {
     key: 'data',
     name: '数据分析',
@@ -47,9 +52,10 @@ module.exports = {
       key: 'quality',
       name: '资质信息',
       menuType: 'module',
-      moduleType: 'iframe',
-      iframeConfig: {
-        path: 'https://leetcode.cn/'
+      moduleType: 'schema',
+      schemaConfig: {
+        api: '/api/client',
+        schema: {}
       }
     }]
   }]
