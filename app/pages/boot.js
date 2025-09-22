@@ -6,7 +6,7 @@ import "element-plus/theme-chalk/index.css";
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import './asserts/custom.css'
 import pinia from '$store/index.js'
-import { createWebHashHistory, createRouter } from 'vue-router'
+import { createWebHistory, createRouter } from 'vue-router'
 
 /**
  * vue 页面主入口， 用于启动 vue
@@ -32,7 +32,7 @@ export default (pageComponent, { routes, libs } = {}) => {
   // 挂载路由
   if ( routes && routes.length ) {
     const router = createRouter ({
-      history: createWebHashHistory(),
+      history: createWebHistory(), // 采用 history 路由模式
       routes,
     });
     app.use(router);

@@ -2,7 +2,7 @@
 module.exports = {
   name:  '京东',
   desc: '京东电商系统',
-  homePage: '/todo?proj_key=jd&key=product',
+  homePage: '/schema?proj_key=jd&key=product',
   menu: [{
     key: 'product',
     name: '商品管理(京东)'
@@ -17,7 +17,7 @@ module.exports = {
       key: 'info',
       name: '店铺信息',
       menuType: 'module',
-      module: 'custom',
+      moduleType: 'custom',
       customConfig: {
         path: '/todo'
       }

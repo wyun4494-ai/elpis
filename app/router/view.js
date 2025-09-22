@@ -8,4 +8,5 @@ module.exports = (app,router) => {
   // viewController.renderPage.bind(viewController) 是路由处理函数
   // 使用 bind 确保 renderPage 方法内部的 this 指向正确的 viewController 实例
   router.get('/view/:page',viewController.renderPage.bind(viewController));
+  router.get('/view/:page/*',viewController.renderPage.bind(viewController));
 }

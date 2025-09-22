@@ -4,6 +4,10 @@
     "获取和modelitem里的key值相同的projectitem",
     "chunkhash",
     "elpis",
-    "happypack"
-  ]
+    "happypack",
+    "mlist",
+    "sider",
+    "taobao"
+  ],
+  "liveServer.settings.port": 5501
 }

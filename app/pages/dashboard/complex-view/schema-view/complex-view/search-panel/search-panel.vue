@@ -1,6 +1,6 @@
 <template>
   <el-card>
-    11
+    search-panel
   </el-card>
 </template>
 

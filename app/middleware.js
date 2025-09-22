@@ -26,12 +26,15 @@
       enableTypes:['json', 'form', 'text'] // 启用解析的请求体类型：JSON、表单、文本  
     }));
 
-  // 引入自定义的错误处理中间件 
+  // 引入 自定义的错误处理中间件
   app.use(app.middlewares.errorHandler)
 
-  // 签名合法校验
+  // 引入 签名合法校验
   app.use(app.middlewares.apiSignVerify)
 
-  // API参数校验
+  // 引入 API参数校验
   app.use(app.middlewares.apiParamsVerify)
+
+  // 引入 项目处理中间件
+  app.use(app.middlewares.projectHandler)
 } 

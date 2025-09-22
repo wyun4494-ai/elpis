@@ -91,7 +91,7 @@ const onEnter = (projectItem) => {
   // 获取当前页面的 origin = 域名
   const { origin } = window.location;
   // 跳转到对应项目的首页
-  window.open(`${origin}/view/dashboard#${projectItem.homePage}`);
+  window.open(`${origin}/view/dashboard${projectItem.homePage}`);
 };
 </script>
 
