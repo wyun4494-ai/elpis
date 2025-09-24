@@ -5,7 +5,7 @@
 module.exports = (app) => {
   return async (ctx, next) => {
 
-    if (ctx.path.indexOf('/api/proj') < 0) {
+    if (ctx.path.indexOf('/api/proj/') < 0) {
       return await next()
     }
 

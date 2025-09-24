@@ -1,7 +1,7 @@
 <template>
   <div class="search-panel"> 
     <!-- 表格  -->
-    <el-table 
+    <el-table
       v-if="schema && schema.properties"
       v-loading="loading"
       class="table"
@@ -88,6 +88,13 @@ const props =  defineProps({
     default: '' // 为String类型设置默认值
   },
   /**
+   * 表格数据源 api 参数
+   */
+  apiParams: {
+    type: Object,
+    default: () => ({})
+  },
+  /**
    * buttons 按钮配置, 结构如下
    * [{
    *    label: '', // 按钮名称
@@ -102,9 +109,9 @@ const props =  defineProps({
   }
 })
 
-const { schema, buttons, api } = toRefs(props);
+const { schema, buttons, api, apiParams } = toRefs(props);
 
-const emit = defineEmits(['operation']);
+const emit = defineEmits(['operate']);
 
 // 计算按钮宽度
 const operationWidth = computed( () => {
@@ -124,7 +131,7 @@ onMounted(() => {
   initData();
 });
 
-watch([api, schema], () => { 
+watch([api, schema, apiParams], () => { 
   initData();
 }, { deep: true}) 
 
@@ -158,6 +165,7 @@ const fetchTableData = async () => {
     method: 'get',
     url: `${api.value}/list`,
     params: {
+      ...apiParams.value,
       page: currentPage.value,
       pageSize: pageSize.value
     }
@@ -204,7 +212,7 @@ const hideLoading = () => {
 
 // 按钮点击处理
 const operationHandler = ( { btnConfig, rowData }) => {
-  emit('operation', { btnConfig, rowData });
+  emit('operate', { btnConfig, rowData });
 }
 
 // 处理每页显示条目数

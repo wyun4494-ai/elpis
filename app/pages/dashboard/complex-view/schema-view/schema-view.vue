@@ -3,21 +3,30 @@
     v-loading="loading"
     class="schema-view"
   >
-    <search-panel />
-    <table-panel />
+    <search-panel
+      v-if="searchSchema?.properties && Object.keys(searchSchema.properties).length > 0"
+      @search="onSearch"
+    />
+    <table-panel
+      @operate="onTableOperate"
+    />
   </el-row>
 </template>
 
 <script setup>
-import { provide, computed } from 'vue';
+import { ref, provide, computed } from 'vue';
 import SearchPanel from './complex-view/search-panel/search-panel.vue'
 import TablePanel from './complex-view/table-panel/table-panel.vue'
 import { useSchema } from './hook/schema';
 
+const apiParams = ref({});
+// 从menulist中获取各种配置
 const {
   api,
   tableSchema,
-  tableConfig
+  tableConfig,
+  searchSchema,
+  searchConfig
 } = useSchema();
 
 const loading = computed(() => {
@@ -26,9 +35,20 @@ const loading = computed(() => {
 // 跨层级传递数据
 provide('schemaViewData', {
   api,
+  apiParams,
   tableSchema,
-  tableConfig
+  tableConfig,
+  searchSchema,
+  searchConfig
 });
+
+
+const onSearch = (searchValObj) => {
+  apiParams.value = searchValObj;
+}
+
+const onTableOperate = () => { 
+}
 </script>
 
 <style lang="less" scoped>

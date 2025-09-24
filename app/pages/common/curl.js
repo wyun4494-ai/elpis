@@ -27,7 +27,7 @@ const curl = ({
     s_sign: md5(`${signKey}_${st}`),
   }
 
-  if(url.indexOf('/api/proj') > -1 && window.projKey && window.projKey !== 'undefined') {
+  if(url.indexOf('/api/proj/') > -1 && window.projKey && window.projKey !== 'undefined') {
 
     dotHeaders.proj_key = window.projKey
   }

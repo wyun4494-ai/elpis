@@ -74,15 +74,15 @@ async function getProjectConfig() {
         proj_key: route.query.proj_key,
       },
     });
-    
+
     if (!res || !res.data || !res.success) {
       return false; // 返回失败状态
     }
-    
+
     const { name, menu} = res.data
     projName.value = name
     menuStore.setMenuList(menu)
-    
+
     return true; // 返回成功状态
   } catch (error) {
     console.error('获取项目配置失败:', error)
@@ -93,7 +93,7 @@ async function getProjectConfig() {
 // 点击菜单回调方法
 const onMenuSelect = function(menuItem) {
   const { moduleType, key, customConfig} = menuItem
-  
+
   if (key === route.query.key) {
     return
   }
@@ -111,7 +111,7 @@ const onMenuSelect = function(menuItem) {
       proj_key: route.query.proj_key
     }
   })
-} 
+}
 
 </script>
 

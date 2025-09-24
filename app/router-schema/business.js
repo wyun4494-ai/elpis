@@ -27,5 +27,8 @@ module.exports = {
         required: ['product_id'],
       }
     }
+  },
+  '/api/proj/product_enum/list': {
+    get: {}
   }
 }

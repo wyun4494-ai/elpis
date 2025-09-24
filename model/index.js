@@ -41,20 +41,20 @@ const projectExtendModel = (model, project) => {
   })
 }
 
-/** 
-* 解析 model 配置， 并返回组织且继承后的数据结构  
+/**
+* 解析 model 配置， 并返回组织且继承后的数据结构
 * [{
 *   model: ${model};
 *   project:{
 *     proj1Key: ${proj1},
-*     proj2Key: ${proj2}   
+*     proj2Key: ${proj2}
 *   }
 * }, ...]
-* 
+*
 */
 
  // 导出一个函数，接收app参数，用于构建model数据结构
- module.exports = (app) => { 
+module.exports = (app) => {
   const modelList = [];
 
   // 遍历当前文件夹，构造模型数据结构，挂载到 modelList 上 
@@ -65,10 +65,10 @@ const projectExtendModel = (model, project) => {
     if (file.indexOf('index.js') > -1) {  return; }
 
     // 区分 model 文件和 project 文件
-    const type = file.includes(`${sep}project${sep}`) || file.includes('/project/') || file.includes('\\project\\') ? 'project' : 'model';    
-    
+    const type = file.includes(`${sep}project${sep}`) || file.includes('/project/') || file.includes('\\project\\') ? 'project' : 'model';
+
      // 处理project类型的文件
-     if (type === 'project') {
+    if (type === 'project') {
       // 从文件路径中提取model名称，例如从 model/business/project/pdd.js 提取 business
       const modelKey = file.match(/model[/\\]([^/\\]+)[/\\]project/)?.[1];
       // 从文件路径中提取project名称，例如从 model/business/project/pdd.js 提取 pdd
@@ -91,7 +91,7 @@ const projectExtendModel = (model, project) => {
       modelItem.project[projectKey].key = projectKey
       modelItem.project[projectKey].modelKey = modelKey
     }
-    
+
     // 处理model类型的文件
     if (type === 'model') {
       const modelKey = file.match(/[/\\]model[/\\](.*?)[/\\]model\.js/)?.[1]
@@ -115,5 +115,5 @@ const projectExtendModel = (model, project) => {
     }
   })
 
-  return modelList; 
- }
+  return modelList;
+}

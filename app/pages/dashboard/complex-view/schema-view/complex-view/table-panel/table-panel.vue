@@ -19,8 +19,9 @@
       ref="schemaTableRef"
       :api="api"
       :schema="tableSchema"
+      :api-params="apiParams"
       :buttons="tableConfig?.rowButtons ?? []"
-      @operation="operationHandler"
+      @operate="operationHandler"
     >
       <!--  -->
     </schema-table>
@@ -30,17 +31,18 @@
 <script setup>
 import { ref, inject } from 'vue'
 import $curl from '$common/curl.js'
-import {  ElMessageBox, ElNotification } from 'element-plus' 
+import {  ElMessageBox, ElNotification } from 'element-plus'
 import SchemaTable from '$widgets/schema-table/schema-table.vue'
 
 const {
   api,
+  apiParams,
   tableSchema,
-  tableConfig
+  tableConfig,
 } = inject('schemaViewData')
 
 const schemaTableRef = ref(null)
-const emit = defineEmits(['operation'])
+const emit = defineEmits(['operate'])
 
 const eventHandlerMap = {
   remove: removeData
@@ -54,7 +56,7 @@ const operationHandler = ({ btnConfig, rowData }) => {
   if (eventHandlerMap[eventKey]){
     eventHandlerMap[eventKey]({ btnConfig, rowData })
   } else {
-     emit('operation', { btnConfig, rowData })
+     emit('operate', { btnConfig, rowData })
   }
 }
 

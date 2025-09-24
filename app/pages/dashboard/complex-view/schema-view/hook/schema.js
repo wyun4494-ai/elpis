@@ -9,6 +9,8 @@ export const useSchema = function() {
   const api = ref('')
   const tableConfig = ref({})
   const tableSchema = ref({})
+  const searchConfig = ref({})
+  const searchSchema = ref({})
 
   // 构造 schemaConfig 相关配置， 输送给 schemaView 解释
   const buildData = function() {
@@ -16,9 +18,7 @@ export const useSchema = function() {
 
     // 添加菜单项存在性检查
     if (!key && !sider_key) {
-      tableSchema.value = {}
-      tableConfig.value = {}
-      api.value = ''
+      resetSchemaData()
       return
     }
     if (!menuStore.menuList || menuStore.menuList.length === 0) {
@@ -33,30 +33,49 @@ export const useSchema = function() {
 
     // 不是 schema 模块时，清空并退出（不警告）
     if (!mItem || mItem.moduleType !== 'schema') {
-      tableSchema.value = {}
-      tableConfig.value = {}
-      api.value = ''
+      resetSchemaData()
       return
     }
 
     const sConfig = mItem.schemaConfig
     if (!sConfig) {
       // 理论上继承后会有；异常也静默，避免刷屏
-      tableSchema.value = {}
-      tableConfig.value = {}
-      api.value = ''
+      resetSchemaData()
       return
     }
   
     const configSchema = cloneDeep((sConfig.schema ?? {}))
     api.value = sConfig.api ?? ''
-    tableConfig.value = {}
+    tableConfig.value = undefined
     tableSchema.value = {}
+    searchConfig.value = undefined
+    searchSchema.value = {}
   
+    // 构造 tableSchema 和 tableConfig
     tableSchema.value = buildDtoSchema(configSchema, 'table')
     tableConfig.value = sConfig.tableConfig ?? {}
+
+    // 构造 searchSchema 和 searchConfig
+    const dtoSearchSchema = buildDtoSchema(configSchema, 'search')
+    for(const key in dtoSearchSchema.properties) {
+      if(route.query[key] !== undefined) {
+        dtoSearchSchema.properties[key].option.default = route.query[key]
+      }
+    }
+    searchSchema.value = dtoSearchSchema
+    searchConfig.value = sConfig.searchConfig ?? {}
   }
-// 通用构建 schema 方法 （清除掉无效字段）
+
+// 重置所有schema相关数据为默认值
+const resetSchemaData = function() {
+  tableSchema.value = {}
+  tableConfig.value = {}
+  searchConfig.value = {}
+  searchSchema.value = {}
+  api.value = ''
+}
+
+  // 通用构建 schema 方法 （清除掉无效字段）
   const buildDtoSchema = (_schema, comName) => {
     if (!_schema?.properties) return {}
 
@@ -75,7 +94,7 @@ export const useSchema = function() {
         let dtoProps = {}
         // 循环遍历key下的每个属性
         for (const pKey in props) {
-          // 过滤掉options结尾的属性 存放到dtoProps中
+          // 过滤掉options结尾的属性 存放到dtoProps中, 先存储基本属性
           if (pKey.indexOf('Option') < 0) {
             dtoProps[pKey] = props[pKey]
           }
@@ -100,9 +119,12 @@ export const useSchema = function() {
   onMounted(() => {
     buildData()
   })
-  return { 
+
+  return {
     api,
     tableConfig,
-    tableSchema
+    tableSchema,
+    searchConfig,
+    searchSchema
   }
 }
