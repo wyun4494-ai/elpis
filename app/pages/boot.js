@@ -15,6 +15,20 @@ import { createWebHistory, createRouter } from 'vue-router'
  * @param  libs 页面依赖的第三方包
  */
 export default (pageComponent, { routes, libs } = {}) => { 
+  // 添加passive事件监听器支持，解决Chrome中关于非被动事件监听器的警告
+  (function() {
+    if (typeof EventTarget !== "undefined") {
+      let func = EventTarget.prototype.addEventListener;
+      EventTarget.prototype.addEventListener = function(type, fn, capture) {
+        capture = capture || {};
+        if (type === "touchstart" || type === "touchmove" || type === "wheel" || type === "mousewheel") {
+          capture.passive = capture.passive || !capture.once;
+        }
+        func.call(this, type, fn, capture);
+      };
+    }
+  })();
+
   const app = createApp(pageComponent);
 
   // 挂载 elementUI 

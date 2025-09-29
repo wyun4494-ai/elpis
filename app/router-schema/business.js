@@ -16,6 +16,23 @@ module.exports = {
     }
   },
   'api/proj/product': {
+    post: {
+      body: {
+        type: 'object',
+        properties: {
+          product_name:{
+            type: 'string',
+          },
+          product_price: {
+            type: 'number',
+          },
+          inventory: {
+            type: 'number',
+          },
+        },
+        required: ['product_name'],
+      }
+    },
     delete: {
       body: {
         type: 'object',
