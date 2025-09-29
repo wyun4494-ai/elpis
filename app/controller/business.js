@@ -1,17 +1,46 @@
 module.exports = (app) => {
-  const BaseController = require('./base')(app);
 
+  // 模拟请求延迟
+  const sleep = async (ms) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve()
+      }, Math.random() * 1000 )
+    })
+  }
+
+  const BaseController = require('./base')(app);
   return class businessController extends BaseController {
 
-    remove(ctx) {
+    // 创建商品
+    async create(ctx) {
+      const { product_name, product_price, inventory } = ctx.request.body
+
+      await sleep(1000)
+
+      this.success(ctx, {
+        message: '创建成功',
+        product_id: Date.now(),
+        projKey: ctx.projKey,
+        product_name,
+        product_price,
+        inventory
+      })
+    }
+    // 删除商品
+    async remove(ctx) {
+
       const { product_id: productId } = ctx.request.body
+
+      await sleep(1000)
+
       this.success(ctx, {
         message: '删除成功',
         projKey: ctx.projKey,
         product_id: productId
       })
     }
-
+    // 获取商品列表
     async getProductList(ctx) {
       const { product_name: productName, price, inventory, page, pageSize } = ctx.query
 
@@ -48,6 +77,8 @@ module.exports = (app) => {
         productList = productList.filter(item => item.inventory == inventory)
       }
 
+      await sleep(1000)
+
       this.success(ctx, productList, {
         total: productList.length,
         page,
@@ -56,7 +87,8 @@ module.exports = (app) => {
     }
 
     // 获取商品下拉框列表
-    getProductEnumList(ctx) {
+    async getProductEnumList(ctx) {
+      
       this.success(ctx, [{
         label: '全部',
         value: 'all'

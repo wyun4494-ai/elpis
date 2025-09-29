@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMenuStore } from '$store/menu'
 import { cloneDeep } from 'lodash';
@@ -7,10 +7,11 @@ export const useSchema = function() {
   const menuStore = useMenuStore()
 
   const api = ref('')
-  const tableConfig = ref({})
+  const tableConfig = ref()
   const tableSchema = ref({})
-  const searchConfig = ref({})
+  const searchConfig = ref()
   const searchSchema = ref({})
+  const components = ref()
 
   // 构造 schemaConfig 相关配置， 输送给 schemaView 解释
   const buildData = function() {
@@ -50,6 +51,7 @@ export const useSchema = function() {
     tableSchema.value = {}
     searchConfig.value = undefined
     searchSchema.value = {}
+    components.value = {}
   
     // 构造 tableSchema 和 tableConfig
     tableSchema.value = buildDtoSchema(configSchema, 'table')
@@ -57,6 +59,7 @@ export const useSchema = function() {
 
     // 构造 searchSchema 和 searchConfig
     const dtoSearchSchema = buildDtoSchema(configSchema, 'search')
+    // 循环遍历searchSchema的属性，将路由参数的值赋给searchSchema的属性的option的default属性
     for(const key in dtoSearchSchema.properties) {
       if(route.query[key] !== undefined) {
         dtoSearchSchema.properties[key].option.default = route.query[key]
@@ -64,6 +67,20 @@ export const useSchema = function() {
     }
     searchSchema.value = dtoSearchSchema
     searchConfig.value = sConfig.searchConfig ?? {}
+
+    // 构造 components = { comKey: { schema:{} config: {} }
+    const { componentConfig } = sConfig
+    if(componentConfig && Object.keys(componentConfig).length > 0){
+      const dtoComponents = {}
+
+      for(const comKey in componentConfig) {
+        dtoComponents[comKey] = {
+          schema: buildDtoSchema(configSchema, comKey),
+          config: componentConfig[comKey]
+        }
+      }
+      components.value = dtoComponents
+    }
   }
 
 // 重置所有schema相关数据为默认值
@@ -73,6 +90,7 @@ const resetSchemaData = function() {
   searchConfig.value = {}
   searchSchema.value = {}
   api.value = ''
+  components.value = {}
 }
 
   // 通用构建 schema 方法 （清除掉无效字段）
@@ -94,14 +112,19 @@ const resetSchemaData = function() {
         let dtoProps = {}
         // 循环遍历key下的每个属性
         for (const pKey in props) {
-          // 过滤掉options结尾的属性 存放到dtoProps中, 先存储基本属性
+          // 过滤掉非option的属性， 筛选出存储基本属性先存放到dtoProps中,
           if (pKey.indexOf('Option') < 0) {
             dtoProps[pKey] = props[pKey]
           }
         } 
-          // 将options结尾的属性值赋值给dtoProps下的options属性
+          // 将指定的comName的option属性存放到dtoProps中
           dtoProps = Object.assign({},dtoProps, {option: props[`${comName}Option`]})
-          // 将处理好的字段存放到dtoSchema的properties中
+
+          const { required } = _schema
+          if(required && required.find(item => item === key)){
+              dtoProps.option.required = true
+          }
+          // 将处理好的字段存放到dtoSchema的properties中  
           dtoSchema.properties[key] = dtoProps
       }
     }
@@ -116,15 +139,12 @@ const resetSchemaData = function() {
     buildData()
   }, { deep: true, immediate: true})
 
-  onMounted(() => {
-    buildData()
-  })
-
   return {
     api,
     tableConfig,
     tableSchema,
     searchConfig,
-    searchSchema
+    searchSchema,
+    components
   }
 }

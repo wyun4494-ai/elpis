@@ -33,6 +33,8 @@ module.exports = {
 
   // 获取项目列表关键数据接口
   '/api/project/model_list': {
-    get: { }
+    get: {
+      // 这个接口不需要任何参数
+    }
   }
 }
