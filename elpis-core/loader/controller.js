@@ -5,17 +5,17 @@ const { sep } = path
 /**
  * controller loader
  * @param {object} app Koa 实例
- * 
- * 加载所有 controller 可通过 'app.controller.${目录}.${文件名}' 访问' 
- * 
+ *
+ * 加载所有 controller 可通过 'app.controller.${目录}.${文件名}' 访问'
+ *
  * 例如
  * app/controller
  *    |
- *    | -- custom-moudle
+ *    | -- custom-module
  *               |
- *               | -- costom-controller.js 
- * => app.controller.customMoudle.costomController
- */ 
+ *               | -- custom-controller.js
+ * => app.controller.customModule.customController
+ */
 
 module.exports = (app) => {
   // 拼接控制器文件所在目录的完整路径 (如: D:\Elpis\app\controller)
@@ -24,15 +24,15 @@ module.exports = (app) => {
   const fileList = glob.sync(path.resolve(controllerPath, `.${sep}**${sep}**.js`));
 
   // 遍历所有文件目录，把内容加载到app.controller 下
-  const controller = {}; 
+  const controller = {};
   fileList.forEach(file => {
     // 提取文件名
     let name = path.resolve(file);
 
-    // 截取路径 => app/controller/custom-moudle/costom-controller.js => custom-moudle/costom-controller
+    // 截取路径 => app/controller/custom-module/custom-controller.js => custom-module/custom-controller
     name = name.substring(name.lastIndexOf(`controller${sep}`) + `controller${sep}`.length, name.lastIndexOf('.'))
 
-    // 把'-'统一成驼峰式,custom-moudle/costom-controller => customMoudle/costomController
+    // 把'-'统一成驼峰式,custom-module/custom-controller => customModule/customController
     name = name.replace(/[_-][a-z]/ig, (s) => s.substring(1).toUpperCase());
 
     // 挂载 controller 到内容 app 对象中
@@ -47,9 +47,9 @@ module.exports = (app) => {
       if (i === names.length - 1){
         // 创建控制器实例对象
         // 1. 加载控制器模块并传入app实例，获取返回的控制器类
-        const ControllerMoule = require(path.resolve(file))(app);
+        const ControllerModule = require(path.resolve(file))(app);
         // 2. 实例化控制器类，创建具体的控制器对象实例
-        tempController[names[i]] = new ControllerMoule();     
+        tempController[names[i]] = new ControllerModule();
       }else{
         // 处理控制器目录结构
         // 如果当前层级的对象不存在，则创建空对象
@@ -63,4 +63,4 @@ module.exports = (app) => {
   });
   // 挂载 middlewares 到内容 app 对象中
   app.controller = controller;
-} 
+}

@@ -12,9 +12,9 @@ module.exports = (app) => {
   const $schema = "http://json-schema.org/draft-07/schema#"
 
   // 返回中间件函数，处理每个请求
-  return async (ctx, next) => { 
+  return async (ctx, next) => {
     // 只对API请求进行参数验证，非API请求直接跳过
-    if (ctx.path.indexOf('/api') < 0 ) {
+    if (ctx.path.indexOf('/api/') < 0 ) {
       return await next()
     }
 

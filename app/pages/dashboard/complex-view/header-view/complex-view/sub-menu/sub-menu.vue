@@ -10,12 +10,12 @@
       v-for="item in menuItem.subMenu"
       :key="item.key"
     >
-      <SubMenu
+      <sub-menu
         v-if="item.subMenu && item.subMenu.length > 0"
         :menu-item="item"
       >
         <!--  -->
-      </SubMenu>
+      </sub-menu>
       <el-menu-item
         v-else
         :index="item.key" 

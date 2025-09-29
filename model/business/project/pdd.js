@@ -1,13 +1,14 @@
+
 module.exports = {
   name: '拼多多',
   desc: '拼多多电商系统',
-  homePage: '/todo?proj_key=pdd&key=product',
+  homePage: '/schema?proj_key=pdd&key=product',
   menu: [{
     key: 'product',
     name: '商品管理(拼多多)'
   }, {
     key: 'client',
-    name: '客户管理(拼多多)'
+    name: '客户管理(拼多多)',
   }, {
     key: 'data',
     name: '数据分析',
@@ -24,13 +25,42 @@ module.exports = {
         }
       }, {
         key: 'sider-report', 
-        name: '报表分析',
+        name: '信息查询',
         menuType: 'module',
         moduleType: 'iframe',
         iframeConfig: {
-          path: 'https://www.baidu.com/'
+          path: 'https://leetcode.cn/'
         }
-      }]
+      },{
+    key: 'shop-settings',
+    name: '店铺设置', 
+    menuType: 'group',
+    subMenu: [{
+      key: 'info',
+      name: '店铺信息',
+      menuType: 'module',
+      moduleType: 'custom',
+      customConfig: {
+        path: '/todo'
+      }
+    }, {
+      key: 'quality',
+      name: '资质信息',
+      menuType: 'module',
+      moduleType: 'custom',
+      customConfig: {
+        path: '/todo'
+      }
+    }]
+  }]
+    }
+  },{
+    key: 'search',
+    name: '信息查询',
+    menuType: 'module',
+    moduleType: 'iframe',
+    iframeConfig: {
+      path: 'https://leetcode.cn/'
     }
   }]
 }

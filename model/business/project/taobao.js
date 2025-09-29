@@ -1,12 +1,14 @@
 module.exports = {
   name: '淘宝',
   desc: '淘宝电商系统',
-  homePage: '/todo?proj_key=taobao&key=order',
+  homePage: '/schema?proj_key=taobao&key=product',
   menu: [{
+    key: 'product'
+  },{
     key: 'order',
     moduleType: 'iframe',
     iframeConfig: {
-      path: 'https://www.pinduoduo.com/'
+      path: 'https://leetcode.cn/'
     }
   }, {
     key: 'operating',

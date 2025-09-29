@@ -43,5 +43,19 @@ export const useMenuStore = defineStore('menu', () => {
   }
 
 
-  return { menuList, setMenuList, findMenuItem }
+  /**
+   * 找出第一个菜单项
+   * @param mlist 要搜索的菜单列表
+   */
+  const findFirstMenuItem = function(mlist = menuList.value) {
+    if (!mlist || !mlist[0]) return ;
+    let firstMenuItem = mlist[0];
+    if (firstMenuItem.subMenu && firstMenuItem.subMenu.length > 0) {
+      firstMenuItem = findFirstMenuItem(firstMenuItem.subMenu);
+    }
+    return firstMenuItem; 
+  }
+
+
+  return { menuList, setMenuList, findMenuItem, findFirstMenuItem }
 })

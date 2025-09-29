@@ -3,7 +3,12 @@
   "cSpell.words": [
     "获取和modelitem里的key值相同的projectitem",
     "chunkhash",
+    "daterange",
     "elpis",
-    "happypack"
-  ]
+    "happypack",
+    "mlist",
+    "sider",
+    "taobao"
+  ],
+  "liveServer.settings.port": 5501
 }
