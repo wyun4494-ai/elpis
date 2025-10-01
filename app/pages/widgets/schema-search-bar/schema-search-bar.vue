@@ -13,7 +13,7 @@
       <!-- 展示子组件 -->
       <component
         :is="SearchItemConfig[schemaItem.option?.comType]?.component"
-        :ref="handleSearchComList"
+        :ref="searchComList"
         :schema-key="key"
         :schema="schemaItem"
         @loaded="handleChildLoaded"
@@ -73,10 +73,7 @@ const { schema } = toRefs(props)
 const emit = defineEmits([ 'load', 'search', 'reset' ])
 
 const searchComList = ref([])
-// 获取动态组件实例里的方法
-const handleSearchComList = (el) => {
-  searchComList.value.push(el);
-}
+
 // 获取动态组件实例里的数据
 const getValue = () => {
   let dtoObj = {}

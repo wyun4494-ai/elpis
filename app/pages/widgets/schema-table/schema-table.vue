@@ -8,7 +8,7 @@
       :data="tableData"
     >
       <template v-for="(schemaItem, key) in schema.properties">
-        <el-table-column 
+        <el-table-column
           v-if="schemaItem?.option?.visible !== false"
           :key="key"
           :prop="key"
@@ -123,11 +123,11 @@ const operationWidth = computed( () => {
 // 表格数据
 const loading = ref(false); // 表格加载状态
 const tableData = ref([]); // 表格数据
-const currentPage = ref(1); // 当前页码 
+const currentPage = ref(1); // 当前页码
 const pageSize = ref(50); // 每页条数
 const total = ref(0); // 数据总数
 
-onMounted(() => {  
+onMounted(() => {
   initData();
 });
 

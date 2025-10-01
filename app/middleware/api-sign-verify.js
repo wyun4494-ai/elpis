@@ -13,6 +13,12 @@ module.exports = (app) => {
     // 从请求头中获取签名和时间戳
     const { s_sign: sSign, s_t: st} = headers;
 
+    // 如果是浏览器直接访问（没有签名信息），则跳过验证
+    if (!sSign && !st) {
+      await next();
+      return;
+    }
+
     // 服务端预设的签名密钥
     const signKey = 'elpis-sign-key'
     // 根据时间戳和密钥生成签名

@@ -20,11 +20,12 @@ const curl = ({
   // 接口签名处理（让接口变动态）
   const signKey = 'elpis-sign-key'
   const st = Date.now()
+  const signature = md5(`${signKey}_${st}`)
 
   const dotHeaders = {
     ...headers,
     s_t: st,
-    s_sign: md5(`${signKey}_${st}`),
+    s_sign: signature,
   }
 
   if(url.indexOf('/api/proj/') > -1 && window.projKey && window.projKey !== 'undefined') {
