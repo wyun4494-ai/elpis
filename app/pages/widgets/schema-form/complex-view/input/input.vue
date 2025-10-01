@@ -22,7 +22,7 @@
     <el-row
       class="item-value"
     >
-      <el-input 
+      <el-input
         v-model="dotValue"
         v-bind="schema.option"
         class="component"
@@ -54,8 +54,8 @@ const props = defineProps({
     default: ''
   },
   model: {
-    type: Object,
-    default: () => ({})
+    type: [String, Number, Boolean, Object],
+    default: undefined
   },
 })
 const { schema, schemaKey} = props
@@ -68,7 +68,8 @@ const placeholder = ref('')
 
 // 初始化数据
 const initData = () => { 
-  dotValue.value = model.value && schema.option?.default
+  // 如果有model值，使用model值，否则使用schema中定义的默认值
+  dotValue.value = model.value !== undefined ? model.value : schema.option?.default
   validTips.value = null
 
   const { minLength, maxLength, pattern } = schema
@@ -117,7 +118,7 @@ const validate = () => {
   if(schema.option?.required && !dotValue.value){
     validTips.value = '请输入内容'
     return false
-  } 
+  }
 
   // 调用ajv校验schema
   if(dotValue.value) {
@@ -125,7 +126,7 @@ const validate = () => {
     const valid = validate(dotValue.value)
     if(!valid && validate.errors && validate.errors[0]) {
       const { keyword, params} = validate.errors[0]
-      if(keyword === type) {
+      if(keyword === 'type') {
         validTips.value = `类型必须为${type}，请检查输入`
       } else if(keyword === 'minLength') {
         validTips.value = `长度不能小于${params.limit}`

@@ -88,6 +88,14 @@ export default {
               disabled: false, // 是否禁用
               default: '', // 默认值
             },
+            // 字段在 detailPanel 中相关配置
+            detailPanelOption: {
+              // 标准 el-component-column 配置（占位）
+              comType: '', // 控件类型 input/select....
+              visible: true, // 是否在 表单 中显示 默认true
+              disabled: false, // 是否禁用
+              default: '', // 默认值
+            },
           },
           // ... 用户可扩展
         },
@@ -134,6 +142,11 @@ export default {
           mainKey: '', // 主键字段
           title: '', // 编辑表单标题
           saveBtnText: '', // 保存按钮名称
+        },
+        // detail-panel 表单相关配置
+        detailPanel: {
+          mainKey: '', // 主键字段
+          title: '', // 详情表单标题
         },
       }
       // ... 支持用户动态扩展

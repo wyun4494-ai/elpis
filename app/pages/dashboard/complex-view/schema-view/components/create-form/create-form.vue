@@ -6,7 +6,7 @@
     destroy-on-close
   >
     <template #header>
-      <h2 class="title">
+      <h2>
         {{ title }}
       </h2>
     </template>
@@ -70,6 +70,9 @@ const close = () => {
 
 // 表单点击
 const save = async () => {
+  // 防止重复提交
+  if(loading.value) return
+
   // 校验表单
   if(!schemaFormRef.value.validate()) {
     console.log('表单校验失败')
@@ -87,14 +90,14 @@ const save = async () => {
   loading.value = false
   if(!res || !res.success) {
     ElNotification({
-      title: '提示',
+      title: '保存失败',
       message: '保存失败',
       type: 'error'
     })
     return
   }
   ElNotification({
-    title: '提示',
+    title: '创建成功',
     message: '创建成功',
     type: 'success'
   })

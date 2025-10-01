@@ -85,7 +85,7 @@ function showComponent({ btnConfig, rowData }) {
     console.error('配置不正确');
     return
   };
-
+  
   comRef.show(rowData);
 }
 

@@ -8,14 +8,34 @@ module.exports = {
           page: {
             type: 'string',
           },
-          size: {
+          pageSize: {
             type: 'string',
           },
         },
       }
     }
   },
-  'api/proj/product': {
+  '/api/proj/product': {
+    put: {
+      body: {
+        type: 'object',
+        properties: {
+          product_id: {
+            type: 'string',
+          },
+          product_name:{
+            type: 'string',
+          },
+          product_price: {
+            type: 'number',
+          },
+          inventory: {
+            type: 'number',
+          },
+        },
+        required: ['product_id', 'product_name'],
+      }
+    },
     post: {
       body: {
         type: 'object',
@@ -35,6 +55,17 @@ module.exports = {
     },
     delete: {
       body: {
+        type: 'object',
+        properties: {
+          product_id: {
+            type: 'string',
+          },
+        },
+        required: ['product_id'],
+      }
+    },
+    get: { 
+      query: {
         type: 'object',
         properties: {
           product_id: {

@@ -59,8 +59,8 @@ const props = defineProps({
     default: ''
   },
   model: {
-    type: Object,
-    default: () => ({})
+    type: [String, Number, Boolean, Object],
+    default: undefined
   },
 })
 const { schema, schemaKey} = props
@@ -72,7 +72,8 @@ const validTips = ref(null)
 
 // 初始化数据
 const initData = () => { 
-  dotValue.value = model.value && schema.option?.default
+  // 如果有model值，使用model值，否则使用schema中定义的默认值
+  dotValue.value = model.value !== undefined ? model.value : schema.option?.default
   validTips.value = null
 }
 
