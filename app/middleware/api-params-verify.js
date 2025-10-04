@@ -40,36 +40,36 @@ module.exports = (app) => {
     let valid = true
 
     // 用于存储ajv验证器实例
-    let validata;
+    let validate;
 
     // 按优先级顺序验证各部分参数: headers -> body -> query -> params
 
     // 验证请求头(headers)参数
     if (valid && headers && schema.headers) {
       schema.headers.$schema = $schema           // 设置JSON Schema版本
-      validata = ajv.compile(schema.headers)     // 编译验证器
-      valid = validata(headers)                  // 执行验证
+      validate = ajv.compile(schema.headers)     // 编译验证器
+      valid = validate(headers)                  // 执行验证
     }
 
     // 验证请求体(body)参数
     if (valid && body && schema.body) {
-      schema.body.$schema = $schema             
-      validata = ajv.compile(schema.body)       
-      valid = validata(body)                    
+      schema.body.$schema = $schema
+      validate = ajv.compile(schema.body)
+      valid = validate(body)
     }
 
     // 验证查询参数(query)参数
     if (valid && query && schema.query) {
-      schema.query.$schema = $schema            
-      validata = ajv.compile(schema.query)      
-      valid = validata(query)                   
+      schema.query.$schema = $schema
+      validate = ajv.compile(schema.query)
+      valid = validate(query)
     }
 
     // 验证路径参数(params)参数
     if (valid && params && schema.params) {
-      schema.params.$schema = $schema           
-      validata = ajv.compile(schema.params)     
-      valid = validata(params)                  
+      schema.params.$schema = $schema
+      validate = ajv.compile(schema.params)
+      valid = validate(params)
     }
 
     // 如果验证失败，返回错误响应
@@ -77,7 +77,7 @@ module.exports = (app) => {
       ctx.status = 200;                          // HTTP状态码设为200
       ctx.body = {                               // 返回错误信息
         success: false,                          // 标记请求处理失败
-        message: `request validate fail ${ajv.errorsText(validata.errors)} `, // 错误详情
+        message: `request validate fail ${ajv.errorsText(validate.errors)} `, // 错误详情
         code: 442                                // 自定义错误码
       }
       return                                     // 中断后续处理流程

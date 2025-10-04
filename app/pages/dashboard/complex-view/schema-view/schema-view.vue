@@ -8,7 +8,15 @@
       @search="onSearch"
     />
     <table-panel
+      ref="tablePanelRef"
       @operate="onTableOperate"
+    />
+    <component
+      :is="ComponentConfig[key]?.component"
+      v-for="(component, key) in components"
+      :key="key"
+      ref="comListRef"
+      @command="handleComCommand"
     />
   </el-row>
 </template>
@@ -17,6 +25,7 @@
 import { ref, provide, computed } from 'vue';
 import SearchPanel from './complex-view/search-panel/search-panel.vue'
 import TablePanel from './complex-view/table-panel/table-panel.vue'
+import ComponentConfig from './components/component-config';
 import { useSchema } from './hook/schema';
 
 const apiParams = ref({});
@@ -26,7 +35,8 @@ const {
   tableSchema,
   tableConfig,
   searchSchema,
-  searchConfig
+  searchConfig,
+  components
 } = useSchema();
 
 const loading = computed(() => {
@@ -39,15 +49,52 @@ provide('schemaViewData', {
   tableSchema,
   tableConfig,
   searchSchema,
-  searchConfig
+  searchConfig,
+  components
 });
 
+const comListRef = ref([]);
+const tablePanelRef = ref(null);
 
 const onSearch = (searchValObj) => {
   apiParams.value = searchValObj;
 }
 
-const onTableOperate = () => { 
+const eventHandlerMap = {
+  showComponent: showComponent
+}
+
+// 表格操作
+const onTableOperate = ({ btnConfig, rowData }) => {
+  const { eventKey } = btnConfig;
+  if(eventHandlerMap[eventKey]){
+    eventHandlerMap[eventKey]({ btnConfig, rowData })
+  }
+}
+
+// 显示组件
+function showComponent({ btnConfig, rowData }) {
+  const { comName } = btnConfig.eventOption;
+  if(!comName) {
+    console.error('请配置组件名称');
+    return
+  };
+
+  const comRef = comListRef.value.find(item => item.name === comName);
+  if(!comRef && typeof comRef.show !== 'function') {
+    console.error('配置不正确');
+    return
+  };
+  
+  comRef.show(rowData);
+}
+
+// 处理来自子组件的命令
+const handleComCommand = (data) => {
+  const { event } = data;
+  if(event === 'loadTableData'){
+    tablePanelRef.value.loadTableData();
+  }
 }
 </script>
 
