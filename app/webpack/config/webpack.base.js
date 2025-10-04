@@ -4,11 +4,14 @@ const  webpack = require("webpack");
 const  HtmlWebpackPlugin  = require('html-webpack-plugin');
 const  glob  = require("glob");
 
+// 获取elpis的node_modules路径
+const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+
 // 动态构造 entry 和 HtmlWebpackPluginList
 const pageEntries = {}
 const HtmlWebpackPluginList = []
-// 获取 app/pages 目录下所有入口文件（entry.xx.js）
-const entryList = path.resolve(process.cwd(), './app/pages/**/entry.*.js');
+// 获取./../pages 目录下所有入口文件（entry.xx.js）
+const entryList = path.resolve(__dirname, '../../pages/**/entry.*.js');
 console.log(entryList)
 glob.sync(entryList).forEach(file => {
   // 构造 entry
@@ -21,7 +24,7 @@ glob.sync(entryList).forEach(file => {
     // 模板文件路径  
     filename: path.resolve(process.cwd(), './app/public/dist',`${entryName}.tpl`),
     // 指定要使用的模板文件
-    template: path.resolve(process.cwd(), './app/view/entry.tpl'),
+    template: path.resolve(__dirname, '../../view/entry.tpl'),
     // 要注入的代码块  
     chunks:[ `${entryName}`]
     })
@@ -46,21 +49,21 @@ module.exports = {
     rules: [{
       test: /\.vue$/,
       use: {
-        loader: 'vue-loader' 
+        loader: path.resolve(elpisNodeModulesPath, 'vue-loader')
       }
     }, {
       test: /\.js$/,
       include: [
         // 只对指定的路径下的 .js 文件进行 babel 转换
-        path.resolve(process.cwd(), './app/pages')
+        path.resolve(__dirname, '../../pages')
       ],
       use: {
-        loader: 'babel-loader',
+        loader: path.resolve(elpisNodeModulesPath, 'babel-loader'),
         options: {
           sourceType: 'module',
           // 添加配置以正确处理 ES6 模块
         presets: [
-          ['@babel/preset-env', {
+          [path.resolve(elpisNodeModulesPath, '@babel/preset-env'), {
             // 移除 modules: false 配置，让 Babel 自动处理模块转换
             targets: {
               browsers: ['last 2 versions', 'ie >= 11']
@@ -68,7 +71,7 @@ module.exports = {
           }]
         ],
         plugins: [
-          '@babel/plugin-transform-runtime'
+          path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')
         ]
         }
       }
@@ -76,13 +79,13 @@ module.exports = {
         test: /\.(mjs|js)$/,
         type: 'javascript/auto', // 自动识别模块类型
         include: [
-          path.resolve(process.cwd(), './app/pages')
+          path.resolve(__dirname, '../../pages')
         ],
-        use: 'babel-loader' // 复用已配置的 babel-loader
+        use: path.resolve(elpisNodeModulesPath, 'babel-loader') // 复用已配置的 babel-loader
       }, {
       test: /\.(png|jpe?g|gif)(\?.+)?$/,
       use: {
-        loader: 'url-loader',
+        loader: path.resolve(elpisNodeModulesPath, 'url-loader'),
         options: {
           limit: 300,
           esModule: false
@@ -91,23 +94,23 @@ module.exports = {
     }, {
       test: /\.css$/,
       use: [{
-        loader: 'style-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
       }, {
-        loader: 'css-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
       }]
     }, {
       test: /\.less$/,
       use: [{
-        loader: 'style-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
       }, {
-        loader: 'css-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
       }, {
-        loader: 'less-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'less-loader')
       }]
     }, {
-      test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
+      test: /\.[eot|svg|ttf|woff|woff2]$/,
       use: {
-        loader: 'file-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'file-loader')
       }
     }]
   },
@@ -121,10 +124,10 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.vue', '.css', '.less'],
     alias: {
-      $page: path.resolve(process.cwd(), './app/pages'),
-      $common: path.resolve(process.cwd(), './app/pages/common'),
-      $widgets: path.resolve(process.cwd(), './app/pages/widgets'),
-      $store:  path.resolve(process.cwd(), './app/pages/store'),
+      $page: path.resolve(__dirname, '../../pages'),
+      $common: path.resolve(__dirname, '../../pages/common'),
+      $widgets: path.resolve(__dirname, '../../pages/widgets'),
+      $store:  path.resolve(__dirname, '../../pages/store'),
     },
     // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
       fallback: {

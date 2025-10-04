@@ -9,6 +9,8 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin')    
 const TerserWebpackPlugin = require('terser-webpack-plugin')
 
+const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+
 // 多线程 build 配置
 const happypackCommonConfig = {
     // 是否开启调试模式，设为false表示不输出调试信息
@@ -43,15 +45,15 @@ const webpackProdConfig = merge(baseConfig, {
         // 1. 提取 loader（负责提取 CSS）
         MiniCssExtractPlugin.loader,
         // 2. CSS loader（负责解析 CSS）
-        'happypack/loader?id=css'
+        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=css`
       ]
     }, {
       test: /\.js$/,
       include: [
-        path.resolve(process.cwd(), './app/pages'),
+        path.resolve(__dirname, '../../pages'),
       ],
       use: [
-        'happypack/loader?id=js',
+        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=js`,
       ]
     }]
   },
@@ -91,13 +93,13 @@ const webpackProdConfig = merge(baseConfig, {
       id: 'js',
 
       // 配置需要使用的loader
-      loaders: [`babel-loader?${JSON.stringify({
+      loaders: [`${path.resolve(elpisNodeModulesPath, 'babel-loader')}?${JSON.stringify({
         // Babel预设配置，用于转换ES6+语法到兼容性更好的ES5
-        presets: ['@babel/preset-env'],
+        presets: [`${path.resolve(elpisNodeModulesPath, '@babel/preset-env')}`],
         // Babel插件配置
         plugins: [
           // 优化Babel生成的代码，减少重复的帮助函数代码
-          '@babel/plugin-transform-runtime'
+          `${path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')}`
         ]
       })}`]
     }),
@@ -107,7 +109,7 @@ const webpackProdConfig = merge(baseConfig, {
       ...happypackCommonConfig,
       id: 'css',
       loaders: [{
-        path: 'css-loader',
+        path: `${path.resolve(elpisNodeModulesPath, 'css-loader')}`,
         options: {
           importLoaders: 1
         }

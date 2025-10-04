@@ -19,7 +19,7 @@
     }
   }));
 
-  // 引入koa-bodyparser中间件，用于解析HTTP请求体
+  // 引入koa-bodyParser中间件，用于解析HTTP请求体
     const bodyParser = require('koa-bodyparser');
     app.use(bodyParser({
       formLimit: '1000mb', // 设置表单数据大小限制为1000MB
