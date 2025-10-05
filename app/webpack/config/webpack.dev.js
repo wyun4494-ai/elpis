@@ -58,8 +58,8 @@ const webpackDevConfig = merge(baseConfig, {
     new CleanWebpackPlugin(['public/dist'], {
       // 设置清理操作的根目录为 ./app 目录
       root: path.resolve(process.cwd(),'./app'),
-      // 指定不需要删除的文件或目录（空数组表示全部删除）
-      exclude: [],
+      // 指定不需要删除的文件或目录（排除 static 目录）
+      exclude: ['public/static'],
       // 启用详细日志输出，显示删除过程
       verbose: true,
       // 设置为 false 表示执行实际删除操作（true 为模拟删除）

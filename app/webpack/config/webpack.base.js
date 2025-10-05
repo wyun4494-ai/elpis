@@ -146,17 +146,17 @@ module.exports = merge.smart({
   resolve: {
     extensions: ['.js', '.vue', '.css', '.less'],
     alias: {
+      'vue': path.resolve(__dirname, '../../../node_modules/vue'),
       $elpisPage: path.resolve(__dirname, '../../pages'),
       $elpisCommon: path.resolve(__dirname, '../../pages/common'),
       $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),
       $elpisUtils: path.resolve(__dirname, '../../pages/common/utils'),
 
       $elpisWidgets: path.resolve(__dirname, '../../pages/widgets'),
-      $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container'),
-      $elpisSidebarContainer: path.resolve(__dirname, '../../pages/widgets/sidebar-container'),
-      $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table'),
-      $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form'),
-      $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar'),
+      $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container/header-container.vue'),
+      $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table/schema-table.vue'),
+      $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form/schema-form.vue'),
+      $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar/schema-search-bar.vue'),
 
       $elpisBoot: path.resolve(__dirname, '../../pages/boot.js'),
       $elpisStore:  path.resolve(__dirname, '../../pages/store'),
