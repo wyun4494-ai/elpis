@@ -3,6 +3,7 @@ const { VueLoaderPlugin } = require('vue-loader');
 const  webpack = require("webpack");
 const  HtmlWebpackPlugin  = require('html-webpack-plugin');
 const  glob  = require("glob");
+const merge = require('webpack-merge')
 
 // 获取elpis的node_modules路径
 const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
@@ -31,11 +32,17 @@ glob.sync(entryList).forEach(file => {
   )
 })
 
-
+// 加载 业务 webpack 配置
+let businessWebpackConfig = {}
+try {
+  businessWebpackConfig = require(`${process.cwd()}/app/webpack.config.js`)
+}catch(e){
+  console.log('加载 业务 webpack 配置失败', e)
+}
 /**
  * webpack 基础配置
  */
-module.exports = { 
+module.exports = merge.smart({
   // 添加 mode 配置以解决警告
   mode: 'production',
   
@@ -124,10 +131,20 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.vue', '.css', '.less'],
     alias: {
-      $page: path.resolve(__dirname, '../../pages'),
-      $common: path.resolve(__dirname, '../../pages/common'),
-      $widgets: path.resolve(__dirname, '../../pages/widgets'),
-      $store:  path.resolve(__dirname, '../../pages/store'),
+      $elpisPage: path.resolve(__dirname, '../../pages'),
+      $elpisCommon: path.resolve(__dirname, '../../pages/common'),
+      $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),
+      $elpisUtils: path.resolve(__dirname, '../../pages/common/utils'),
+
+      $elpisWidgets: path.resolve(__dirname, '../../pages/widgets'),
+      $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container'),
+      $elpisSidebarContainer: path.resolve(__dirname, '../../pages/widgets/sidebar-container'),
+      $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table'),
+      $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form'),
+      $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar'),
+
+      $elpisBoot: path.resolve(__dirname, '../../pages/boot.js'),
+      $elpisStore:  path.resolve(__dirname, '../../pages/store'),
     },
     // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
       fallback: {
@@ -211,4 +228,4 @@ module.exports = {
     topLevelAwait: true,
   },
 
-}
+},businessWebpackConfig)

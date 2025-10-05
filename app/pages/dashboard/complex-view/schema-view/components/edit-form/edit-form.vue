@@ -31,8 +31,8 @@
 
 <script setup>
 import { ref, inject, computed } from 'vue';
-import schemaForm from '$widgets/schema-form/schema-form.vue';
-import $curl from '$common/curl.js'
+import schemaForm from '$elpisWidgets/schema-form/schema-form.vue';
+import $curl from '$elpisCommon/curl.js'
 import { ElNotification } from 'element-plus';
 
 const {

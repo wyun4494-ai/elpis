@@ -5,7 +5,7 @@ import ElementPlus from "element-plus";
 import "element-plus/theme-chalk/index.css";
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import './asserts/custom.css'
-import pinia from '$store/index.js'
+import pinia from '$elpisStore/index.js'
 import { createWebHistory, createRouter } from 'vue-router'
 
 /**

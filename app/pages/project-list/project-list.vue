@@ -59,8 +59,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import $curl from '$common/curl.js';
-import HeaderContainer from '$widgets/header-container/header-container.vue';
+import $curl from '$elpisCommon/curl.js';
+import HeaderContainer from '$elpisWidgets/header-container/header-container.vue';
 
 const loading = ref(false);
 const modelList = ref([]);  

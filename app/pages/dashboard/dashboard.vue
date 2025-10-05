@@ -16,9 +16,9 @@
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import HeaderView from './complex-view/header-view/header-view.vue'
 import { ref, onMounted } from 'vue'
-import { useProjectStore } from '$store/project.js'
-import { useMenuStore } from '$store/menu.js'
-import $curl from '$common/curl.js'
+import { useProjectStore } from '$elpisStore/project.js'
+import { useMenuStore } from '$elpisStore/menu.js'
+import $curl from '$elpisCommon/curl.js'
 import { useRouter, useRoute } from 'vue-router'
 
 const projectStore = useProjectStore()

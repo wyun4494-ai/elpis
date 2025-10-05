@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMenuStore } from '$store/menu'
+import { useMenuStore } from '$elpisStore/menu'
 import { cloneDeep } from 'lodash';
 export const useSchema = function() {
   const route = useRoute()

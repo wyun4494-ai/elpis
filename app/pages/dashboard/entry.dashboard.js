@@ -1,4 +1,4 @@
-import boot from '$page/boot.js'
+import boot from '$elpisPage/boot.js'
 import dashboard from './dashboard.vue'
 
 const routes = []

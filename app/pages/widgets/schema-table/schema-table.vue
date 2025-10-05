@@ -55,7 +55,7 @@
 
 <script setup>
 import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
-import $curl from '$common/curl'
+import $curl from '$elpisCommon/curl'
 
 const props =  defineProps({
   /**
