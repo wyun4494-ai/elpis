@@ -50,7 +50,10 @@ const webpackProdConfig = merge(baseConfig, {
     }, {
       test: /\.js$/,
       include: [
+        // 只对指定的elpis路径下的 .js 文件进行 babel 转换
         path.resolve(__dirname, '../../pages'),
+        // 只对指定的业务路径下的 .js 文件进行 babel 转换
+        path.resolve(process.cwd(), './app/pages')
       ],
       use: [
         `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=js`,

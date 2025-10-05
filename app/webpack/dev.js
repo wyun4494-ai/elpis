@@ -12,7 +12,6 @@ module.exports = () => {
     DEV_SERVER_CONFIG
   } = require('./config/webpack.dev.js');
   
-  console.log('sadasdasdasdas',webpackDevConfig)
   const app = express();
   
   const compiler = webpack(webpackDevConfig);

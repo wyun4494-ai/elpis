@@ -8,18 +8,31 @@ const merge = require('webpack-merge')
 // 获取elpis的node_modules路径
 const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
 
-// 动态构造 entry 和 HtmlWebpackPluginList
-const pageEntries = {}
-const HtmlWebpackPluginList = []
-// 获取./../pages 目录下所有入口文件（entry.xx.js）
-const entryList = path.resolve(__dirname, '../../pages/**/entry.*.js');
-console.log(entryList)
-glob.sync(entryList).forEach(file => {
+// 动态构造 elpisPageEntries 和 elpisHtmlWebpackPluginList
+const elpisPageEntries = {}
+const elpisHtmlWebpackPluginList = []
+// 获取 elpis/app/pages 目录下所有入口文件（entry.xx.js）
+const elpisEntryList = path.resolve(__dirname, '../../pages/**/entry.*.js');
+glob.sync(elpisEntryList).forEach(file => {
+  handleFile(file, elpisPageEntries, elpisHtmlWebpackPluginList)
+})
+
+// 动态构造 businessPageEntries 和 businessHtmlWebpackPluginList
+const businessPageEntries = {}
+const businessHtmlWebpackPluginList = []
+// 获取 business/app/pages 目录下所有入口文件（entry.xx.js）
+const businessEntryList = path.resolve(process.cwd(), './app/pages/**/entry.*.js');
+glob.sync(businessEntryList).forEach(file => {
+  handleFile(file, businessPageEntries, businessHtmlWebpackPluginList)
+})
+
+// 构造相关 webpack 处理的数据结构
+function handleFile(file, entries = {}, htmlWebpackPluginList = []) {
   // 构造 entry
   const entryName = path.basename(file, '.js')
-  pageEntries[entryName] = file
+  entries[entryName] = file
   // 构造 HtmlWebpackPlugin 最终渲染的页面文件
-  HtmlWebpackPluginList.push(
+  htmlWebpackPluginList.push(
     // html-webpack-plugin 辅助注入打包后的 bundle 文件到 tpl中
     new HtmlWebpackPlugin({
     // 模板文件路径  
@@ -30,7 +43,7 @@ glob.sync(entryList).forEach(file => {
     chunks:[ `${entryName}`]
     })
   )
-})
+}
 
 // 加载 业务 webpack 配置
 let businessWebpackConfig = {}
@@ -48,7 +61,7 @@ module.exports = merge.smart({
   
   // entry（入口）：指定 webpack 构建依赖图的开始点
   // webpack 会从这个点开始，递归地构建模块依赖关系图
-  entry: pageEntries,
+  entry: Object.assign(elpisPageEntries, businessPageEntries),
 
   // module（模块）：配置如何处理项目中的不同类型模块
   // 例如如何处理 CSS、图片、字体等非 JavaScript 模块
@@ -61,8 +74,10 @@ module.exports = merge.smart({
     }, {
       test: /\.js$/,
       include: [
-        // 只对指定的路径下的 .js 文件进行 babel 转换
-        path.resolve(__dirname, '../../pages')
+        // 只对指定的elpis路径下的 .js 文件进行 babel 转换
+        path.resolve(__dirname, '../../pages'),
+        // 只对指定的业务路径下的 .js 文件进行 babel 转换
+        path.resolve(process.cwd(), './app/pages')
       ],
       use: {
         loader: path.resolve(elpisNodeModulesPath, 'babel-loader'),
@@ -175,7 +190,8 @@ module.exports = merge.smart({
     }),
 
     // 构造最终渲染的页面模板
-    ...HtmlWebpackPluginList
+    ...elpisHtmlWebpackPluginList,
+    ...businessHtmlWebpackPluginList
   ],
   
 
