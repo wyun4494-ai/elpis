@@ -9,7 +9,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin')    
 const TerserWebpackPlugin = require('terser-webpack-plugin')
 
-const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+const elpisNodeModulesPath = path.resolve(process.cwd(), './node_modules');
 
 // 多线程 build 配置
 const happypackCommonConfig = {

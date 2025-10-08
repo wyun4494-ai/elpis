@@ -29,7 +29,7 @@ Object.keys(baseConfig.entry).forEach(v => {
 })
 
 // 生产环境 webpack 配置
-const webpackDevConfig = merge(baseConfig, {
+const webpackDevConfig = merge.smart(baseConfig, {
   // 指定开发环境配置
   mode: 'development',
 
