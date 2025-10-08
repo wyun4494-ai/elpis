@@ -4,6 +4,7 @@ const  webpack = require("webpack");
 const  HtmlWebpackPlugin  = require('html-webpack-plugin');
 const  glob  = require("glob");
 const merge = require('webpack-merge')
+const fs = require('fs')
 
 // 获取elpis的node_modules路径
 const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
@@ -145,26 +146,49 @@ module.exports = merge.smart({
   // 例如设置模块查找目录、文件扩展名、别名等
   resolve: {
     extensions: ['.js', '.vue', '.css', '.less'],
-    alias: {
-      'vue': path.resolve(__dirname, '../../../node_modules/vue'),
-      $elpisPage: path.resolve(__dirname, '../../pages'),
-      $elpisCommon: path.resolve(__dirname, '../../pages/common'),
-      $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),
-      $elpisUtils: path.resolve(__dirname, '../../pages/common/utils'),
+    alias: (() => {
+      const aliasMap = {}
+      const blankModulePath = path.resolve(__dirname, '../libs/blank.js')
 
-      $elpisWidgets: path.resolve(__dirname, '../../pages/widgets'),
-      $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container/header-container.vue'),
-      $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table/schema-table.vue'),
-      $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form/schema-form.vue'),
-      $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar/schema-search-bar.vue'),
+      // dashboard 业务扩展路由
+      const businessDashboardConfig = path.resolve(process.cwd(), './app/pages/dashboard/router.js')
+      aliasMap['$businessDashboardConfig'] = fs.existsSync(businessDashboardConfig) ? businessDashboardConfig : blankModulePath
 
-      $elpisBoot: path.resolve(__dirname, '../../pages/boot.js'),
-      $elpisStore:  path.resolve(__dirname, '../../pages/store'),
-    },
-    // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
-      fallback: {
-        "process": false
+      // schema-view 业务扩展 component 配置
+      const businessSchemaViewConfig = path.resolve(process.cwd(), './app/pages/dashboard/complex-view/schema-view/components/component-config.js')
+      aliasMap['$businessComponentConfig'] = fs.existsSync(businessSchemaViewConfig) ? businessSchemaViewConfig : blankModulePath
+
+      // schema-form 业务扩展  配置
+      const businessFormItemConfig = path.resolve(process.cwd(), './app/pages/widgets/schema-form/form-item-config.js')
+      aliasMap['$businessFormItemConfig'] = fs.existsSync(businessFormItemConfig) ? businessFormItemConfig : blankModulePath
+
+      // schema-search-bar 业务扩展 配置
+      const businessSearchItemConfig = path.resolve(process.cwd(), './app/pages/widgets/schema-search-bar/search-item-config.js')
+      aliasMap['$businessSearchItemConfig'] = fs.existsSync(businessSearchItemConfig) ? businessSearchItemConfig : blankModulePath
+
+      return {
+        'vue': path.resolve(__dirname, '../../../node_modules/vue'),
+        $elpisPage: path.resolve(__dirname, '../../pages'),
+        $elpisCommon: path.resolve(__dirname, '../../pages/common'),
+        $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),
+        $elpisUtils: path.resolve(__dirname, '../../pages/common/utils'),
+  
+        $elpisWidgets: path.resolve(__dirname, '../../pages/widgets'),
+        $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container/header-container.vue'),
+        $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table/schema-table.vue'),
+        $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form/schema-form.vue'),
+        $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar/schema-search-bar.vue'),
+  
+        $elpisBoot: path.resolve(__dirname, '../../pages/boot.js'),
+        $elpisStore:  path.resolve(__dirname, '../../pages/store'),
+        ...aliasMap
       }
+    })(),
+    // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
+    fallback: {
+      "process": false
+    }
+    
   },
 
 
