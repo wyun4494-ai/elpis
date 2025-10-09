@@ -10,16 +10,24 @@ const {sep} = path
  * 解析所有 app/router/ 路径下的所有js文件 加载到 KoaRouter 下
  */
 module.exports = (app) => {
-  
-  //获取所有路由文件
-  const routerPath = path.resolve(app.businessPath, `.${sep}router`)
-  
+
   // 创建路由实例
   const router = new KoaRouter()
-  
-  // 注册所有路由
-  const fileList = glob.sync(path.resolve(routerPath, `.${sep}**${sep}*.js`))
-  fileList.forEach(file => {
+
+  //获取elpis路由文件
+  const elpisRouterPath = path.resolve(__dirname, `..${sep}..${sep}app${sep}router`)
+  // 注册elpis所有路由 
+  const elpisFileList = glob.sync(path.resolve(elpisRouterPath, `.${sep}**${sep}*.js`))
+  elpisFileList.forEach(file => {
+    // 加载路由模块，并传入app实例和router实例
+    require(path.resolve(file))(app,router)
+  })
+
+  //获取业务路由文件
+  const businessRouterPath = path.resolve(app.businessPath, `.${sep}router`)
+  // 注册业务所有路由 
+  const businessFileList = glob.sync(path.resolve(businessRouterPath, `.${sep}**${sep}*.js`))
+  businessFileList.forEach(file => {
     // 加载路由模块，并传入app实例和router实例
     require(path.resolve(file))(app,router)
   })

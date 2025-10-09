@@ -18,14 +18,26 @@ const { sep } = path
  */
 
 module.exports = (app) => {
-  // 拼接控制器文件所在目录的完整路径 (如: D:\Elpis\app\controller)
-  const controllerPath = path.resolve(app.businessPath, `.${sep}controller`);
-  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
-  const fileList = glob.sync(path.resolve(controllerPath, `.${sep}**${sep}**.js`));
 
   // 遍历所有文件目录，把内容加载到app.controller 下
   const controller = {};
-  fileList.forEach(file => {
+
+  // 拼接控制器文件所在elpis目录的完整路径 (如: D:\Elpis\app\controller)
+  const elpisControllerPath = path.resolve(__dirname, `..${sep}..${sep}app${sep}controller`);
+  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
+  const elpisFileList = glob.sync(path.resolve(elpisControllerPath, `.${sep}**${sep}**.js`));
+  elpisFileList.forEach(file => {
+    handleFile(file);
+  });
+
+  // 拼接控制器文件所在业务目录的完整路径 (如: 业务根目录\app\controller)
+  const businessControllerPath = path.resolve(app.businessPath, `.${sep}controller`);
+  const businessFileList = glob.sync(path.resolve(businessControllerPath, `.${sep}**${sep}**.js`));
+  businessFileList.forEach(file => {
+    handleFile(file);
+  });
+
+  function handleFile(file) {
     // 提取文件名
     let name = path.resolve(file);
 
@@ -60,7 +72,7 @@ module.exports = (app) => {
         tempController = tempController[names[i]]
       }
     }
-  });
+  }
   // 挂载 middlewares 到内容 app 对象中
   app.controller = controller;
 }

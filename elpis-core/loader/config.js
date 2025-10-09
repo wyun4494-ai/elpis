@@ -16,12 +16,19 @@ const { sep } = path
  * 生产配置 config/config.prod.js
  */
 module.exports = (app) => {
-  // 找到config目录
-  const configPath = path.resolve(app.baseDir, `.${sep}config`);
-  // 获取default.config
-  let defaultConfig = {};
+  // elpis目录的config配置
+  const elpisConfigPath = path.resolve(__dirname, `..${sep}..${sep}config`);
+  // 获取elpis目录的default.config
+  let defaultConfig = require(path.resolve(elpisConfigPath, `.${sep}config.default.js`));
+
+  // 业务目录的config配置
+  const businessConfigPath = path.resolve(process.cwd(), `.${sep}config`);
+
   try {
-    defaultConfig = require(path.resolve(configPath, `.${sep}config.default.js`));
+    defaultConfig = {
+      ...defaultConfig,
+      ...require(path.resolve(businessConfigPath, `.${sep}config.default.js`))
+    }
   } catch (e) {
     console.log(`[exception] there is no default.config.js:${e.message})`);
     console.debug(`[exception] Stack trace: ${e.stack}`); 
@@ -30,11 +37,11 @@ module.exports = (app) => {
   let envConfig = {};
   try {
     if (app.env.isLocal()) { // 本地
-      envConfig = require(path.resolve(configPath, `.${sep}config.local.js`));
+      envConfig = require(path.resolve(businessConfigPath, `.${sep}config.local.js`));
     } else if (app.env.isBeta()) { // 测试
-      envConfig = require(path.resolve(configPath, `.${sep}config.beta.js`));
+      envConfig = require(path.resolve(businessConfigPath, `.${sep}config.beta.js`));
     } else if (app.env.isProduction()) { // 生产
-      envConfig = require(path.resolve(configPath, `.${sep}config.prod.js`));
+      envConfig = require(path.resolve(businessConfigPath, `.${sep}config.prod.js`));
     }
   } catch (e) {
       const envName = app.env.isLocal() ? 'local' : app.env.isBeta() ? 'beta' : 'prod';

@@ -2,7 +2,7 @@
   const glob = require("glob")
   const {sep} = path
 /**
- * entend loader
+ * extend loader
  * @param {object} app Koa 实例
  * 
  * 加载所有 extend, 可通过 'app.extend.${文件}访问'
@@ -15,13 +15,22 @@
  */
 module.exports = (app) => {
    // 拼接extend目录的完整路径 (如: D:\Elpis\app\extend)
-  const extendPath = path.resolve(app.businessPath, `.${sep}extend`)
+  const elpisExtendPath = path.resolve(__dirname, `..${sep}..${sep}app${sep}extend`)
   // 使用glob模式匹配查找extend目录下的所有.js文件
-  const fileList = glob.sync(path.resolve(extendPath, `.${sep}**${sep}**.js`))
+  const elpisFileList = glob.sync(path.resolve(elpisExtendPath, `.${sep}**${sep}**.js`))
+  elpisFileList.forEach(file => {
+    handleFile(file);
+  });
 
-  // 遍历所有找到的扩展文件
-  // const extend = {}
-  fileList.forEach(file => {
+  // 拼接extend目录的完整路径 (如: D:\Elpis\app\extend)
+  const businessExtendPath = path.resolve(app.businessPath, `.${sep}extend`)
+  // 使用glob模式匹配查找extend目录下的所有.js文件
+  const businessFileList = glob.sync(path.resolve(businessExtendPath, `.${sep}**${sep}**.js`))
+  businessFileList.forEach(file => {
+    handleFile(file);
+  });
+
+  function handleFile(file) {
     //  提取文件的完整路径
     let name = path.resolve(file)
 
@@ -42,6 +51,5 @@ module.exports = (app) => {
     // 例如: app.customExtend = require('custom-extend.js')(app)
     app[name] = require(path.resolve(file))(app)
 
-  })
-  
+  }
 }

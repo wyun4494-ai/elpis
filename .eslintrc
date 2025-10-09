@@ -13,10 +13,7 @@
     "parser": "@babel/eslint-parser",
     "ecmaVersion": 2017,
     "sourceType": "module",
-    "requireConfigFile": false, 
-    "babelOptions": {
-      "presets": ["@babel/preset-env"] // 确保与项目 Babel 预设一致
-    }
+    "requireConfigFile": false
   },
   "rules": {
     "no-unused-vars": [2, {"args": "none"}],

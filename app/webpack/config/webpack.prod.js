@@ -9,6 +9,8 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin')    
 const TerserWebpackPlugin = require('terser-webpack-plugin')
 
+const elpisNodeModulesPath = path.resolve(process.cwd(), './node_modules');
+
 // 多线程 build 配置
 const happypackCommonConfig = {
     // 是否开启调试模式，设为false表示不输出调试信息
@@ -43,15 +45,18 @@ const webpackProdConfig = merge(baseConfig, {
         // 1. 提取 loader（负责提取 CSS）
         MiniCssExtractPlugin.loader,
         // 2. CSS loader（负责解析 CSS）
-        'happypack/loader?id=css'
+        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=css`
       ]
     }, {
       test: /\.js$/,
       include: [
-        path.resolve(process.cwd(), './app/pages'),
+        // 只对指定的elpis路径下的 .js 文件进行 babel 转换
+        path.resolve(__dirname, '../../pages'),
+        // 只对指定的业务路径下的 .js 文件进行 babel 转换
+        path.resolve(process.cwd(), './app/pages')
       ],
       use: [
-        'happypack/loader?id=js',
+        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=js`,
       ]
     }]
   },
@@ -65,8 +70,8 @@ const webpackProdConfig = merge(baseConfig, {
     new CleanWebpackPlugin(['public/dist'], {
       // 设置清理操作的根目录为 ./app 目录
       root: path.resolve(process.cwd(),'./app'),
-      // 指定不需要删除的文件或目录（空数组表示全部删除）
-      exclude: [],
+      // 指定不需要删除的文件或目录（排除 static 目录）
+      exclude: ['public/static'],
       // 启用详细日志输出，显示删除过程
       verbose: true,
       // 设置为 false 表示执行实际删除操作（true 为模拟删除）
@@ -91,13 +96,13 @@ const webpackProdConfig = merge(baseConfig, {
       id: 'js',
 
       // 配置需要使用的loader
-      loaders: [`babel-loader?${JSON.stringify({
+      loaders: [`${path.resolve(elpisNodeModulesPath, 'babel-loader')}?${JSON.stringify({
         // Babel预设配置，用于转换ES6+语法到兼容性更好的ES5
-        presets: ['@babel/preset-env'],
+        presets: [`${path.resolve(elpisNodeModulesPath, '@babel/preset-env')}`],
         // Babel插件配置
         plugins: [
           // 优化Babel生成的代码，减少重复的帮助函数代码
-          '@babel/plugin-transform-runtime'
+          `${path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')}`
         ]
       })}`]
     }),
@@ -107,7 +112,7 @@ const webpackProdConfig = merge(baseConfig, {
       ...happypackCommonConfig,
       id: 'css',
       loaders: [{
-        path: 'css-loader',
+        path: `${path.resolve(elpisNodeModulesPath, 'css-loader')}`,
         options: {
           importLoaders: 1
         }

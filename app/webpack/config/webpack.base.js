@@ -3,42 +3,67 @@ const { VueLoaderPlugin } = require('vue-loader');
 const  webpack = require("webpack");
 const  HtmlWebpackPlugin  = require('html-webpack-plugin');
 const  glob  = require("glob");
+const merge = require('webpack-merge')
+const fs = require('fs')
 
-// 动态构造 entry 和 HtmlWebpackPluginList
-const pageEntries = {}
-const HtmlWebpackPluginList = []
-// 获取 app/pages 目录下所有入口文件（entry.xx.js）
-const entryList = path.resolve(process.cwd(), './app/pages/**/entry.*.js');
-console.log(entryList)
-glob.sync(entryList).forEach(file => {
+// 获取elpis的node_modules路径
+const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+
+
+// 动态构造 elpisPageEntries 和 elpisHtmlWebpackPluginList
+const elpisPageEntries = {}
+const elpisHtmlWebpackPluginList = []
+// 获取 elpis/app/pages 目录下所有入口文件（entry.xx.js）
+const elpisEntryList = path.resolve(__dirname, '../../pages/**/entry.*.js');
+glob.sync(elpisEntryList).forEach(file => {
+  handleFile(file, elpisPageEntries, elpisHtmlWebpackPluginList)
+})
+
+// 动态构造 businessPageEntries 和 businessHtmlWebpackPluginList
+const businessPageEntries = {}
+const businessHtmlWebpackPluginList = []
+// 获取 business/app/pages 目录下所有入口文件（entry.xx.js）
+const businessEntryList = path.resolve(process.cwd(), './app/pages/**/entry.*.js');
+glob.sync(businessEntryList).forEach(file => {
+  handleFile(file, businessPageEntries, businessHtmlWebpackPluginList)
+})
+
+// 构造相关 webpack 处理的数据结构
+function handleFile(file, entries = {}, htmlWebpackPluginList = []) {
   // 构造 entry
   const entryName = path.basename(file, '.js')
-  pageEntries[entryName] = file
+  entries[entryName] = file
   // 构造 HtmlWebpackPlugin 最终渲染的页面文件
-  HtmlWebpackPluginList.push(
+  htmlWebpackPluginList.push(
     // html-webpack-plugin 辅助注入打包后的 bundle 文件到 tpl中
     new HtmlWebpackPlugin({
     // 模板文件路径  
     filename: path.resolve(process.cwd(), './app/public/dist',`${entryName}.tpl`),
     // 指定要使用的模板文件
-    template: path.resolve(process.cwd(), './app/view/entry.tpl'),
+    template: path.resolve(__dirname, '../../view/entry.tpl'),
     // 要注入的代码块  
     chunks:[ `${entryName}`]
     })
   )
-})
+}
 
-
+// 加载 业务 webpack 配置
+let businessWebpackConfig = {}
+try {
+  businessWebpackConfig = require(`${process.cwd()}/app/webpack.config.js`)
+}catch(e){
+  console.log('加载 业务 webpack 配置失败', e)
+}
 /**
  * webpack 基础配置
  */
-module.exports = { 
+module.exports = merge.smart({
   // 添加 mode 配置以解决警告
   mode: 'production',
   
   // entry（入口）：指定 webpack 构建依赖图的开始点
   // webpack 会从这个点开始，递归地构建模块依赖关系图
-  entry: pageEntries,
+  entry: Object.assign(elpisPageEntries, businessPageEntries),
 
   // module（模块）：配置如何处理项目中的不同类型模块
   // 例如如何处理 CSS、图片、字体等非 JavaScript 模块
@@ -46,21 +71,23 @@ module.exports = {
     rules: [{
       test: /\.vue$/,
       use: {
-        loader: 'vue-loader' 
+        loader: path.resolve(elpisNodeModulesPath, 'vue-loader')
       }
     }, {
       test: /\.js$/,
       include: [
-        // 只对指定的路径下的 .js 文件进行 babel 转换
+        // 只对指定的elpis路径下的 .js 文件进行 babel 转换
+        path.resolve(__dirname, '../../pages'),
+        // 只对指定的业务路径下的 .js 文件进行 babel 转换
         path.resolve(process.cwd(), './app/pages')
       ],
       use: {
-        loader: 'babel-loader',
+        loader: path.resolve(elpisNodeModulesPath, 'babel-loader'),
         options: {
           sourceType: 'module',
           // 添加配置以正确处理 ES6 模块
         presets: [
-          ['@babel/preset-env', {
+          [path.resolve(elpisNodeModulesPath, '@babel/preset-env'), {
             // 移除 modules: false 配置，让 Babel 自动处理模块转换
             targets: {
               browsers: ['last 2 versions', 'ie >= 11']
@@ -68,7 +95,7 @@ module.exports = {
           }]
         ],
         plugins: [
-          '@babel/plugin-transform-runtime'
+          path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')
         ]
         }
       }
@@ -76,13 +103,13 @@ module.exports = {
         test: /\.(mjs|js)$/,
         type: 'javascript/auto', // 自动识别模块类型
         include: [
-          path.resolve(process.cwd(), './app/pages')
+          path.resolve(__dirname, '../../pages')
         ],
-        use: 'babel-loader' // 复用已配置的 babel-loader
+        use: path.resolve(elpisNodeModulesPath, 'babel-loader') // 复用已配置的 babel-loader
       }, {
       test: /\.(png|jpe?g|gif)(\?.+)?$/,
       use: {
-        loader: 'url-loader',
+        loader: path.resolve(elpisNodeModulesPath, 'url-loader'),
         options: {
           limit: 300,
           esModule: false
@@ -91,23 +118,23 @@ module.exports = {
     }, {
       test: /\.css$/,
       use: [{
-        loader: 'style-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
       }, {
-        loader: 'css-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
       }]
     }, {
       test: /\.less$/,
       use: [{
-        loader: 'style-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
       }, {
-        loader: 'css-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
       }, {
-        loader: 'less-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'less-loader')
       }]
     }, {
-      test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
+      test: /\.[eot|svg|ttf|woff|woff2]$/,
       use: {
-        loader: 'file-loader'
+        loader: path.resolve(elpisNodeModulesPath, 'file-loader')
       }
     }]
   },
@@ -120,16 +147,49 @@ module.exports = {
   // 例如设置模块查找目录、文件扩展名、别名等
   resolve: {
     extensions: ['.js', '.vue', '.css', '.less'],
-    alias: {
-      $page: path.resolve(process.cwd(), './app/pages'),
-      $common: path.resolve(process.cwd(), './app/pages/common'),
-      $widgets: path.resolve(process.cwd(), './app/pages/widgets'),
-      $store:  path.resolve(process.cwd(), './app/pages/store'),
-    },
-    // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
-      fallback: {
-        "process": false
+    alias: (() => {
+      const aliasMap = {}
+      const blankModulePath = path.resolve(__dirname, '../libs/blank.js')
+
+      // dashboard 业务扩展路由
+      const businessDashboardConfig = path.resolve(process.cwd(), './app/pages/dashboard/router.js')
+      aliasMap['$businessDashboardConfig'] = fs.existsSync(businessDashboardConfig) ? businessDashboardConfig : blankModulePath
+
+      // schema-view 业务扩展 component 配置
+      const businessSchemaViewConfig = path.resolve(process.cwd(), './app/pages/dashboard/complex-view/schema-view/components/component-config.js')
+      aliasMap['$businessComponentConfig'] = fs.existsSync(businessSchemaViewConfig) ? businessSchemaViewConfig : blankModulePath
+
+      // schema-form 业务扩展  配置
+      const businessFormItemConfig = path.resolve(process.cwd(), './app/pages/widgets/schema-form/form-item-config.js')
+      aliasMap['$businessFormItemConfig'] = fs.existsSync(businessFormItemConfig) ? businessFormItemConfig : blankModulePath
+
+      // schema-search-bar 业务扩展 配置
+      const businessSearchItemConfig = path.resolve(process.cwd(), './app/pages/widgets/schema-search-bar/search-item-config.js')
+      aliasMap['$businessSearchItemConfig'] = fs.existsSync(businessSearchItemConfig) ? businessSearchItemConfig : blankModulePath
+
+      return {
+        'vue': path.resolve(__dirname, '../../../node_modules/vue'),
+        $elpisPage: path.resolve(__dirname, '../../pages'),
+        $elpisCommon: path.resolve(__dirname, '../../pages/common'),
+        $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),
+        $elpisUtils: path.resolve(__dirname, '../../pages/common/utils'),
+  
+        $elpisWidgets: path.resolve(__dirname, '../../pages/widgets'),
+        $elpisHeaderContainer: path.resolve(__dirname, '../../pages/widgets/header-container/header-container.vue'),
+        $elpisSchemaTable: path.resolve(__dirname, '../../pages/widgets/schema-table/schema-table.vue'),
+        $elpisSchemaForm: path.resolve(__dirname, '../../pages/widgets/schema-form/schema-form.vue'),
+        $elpisSchemaSearchBar: path.resolve(__dirname, '../../pages/widgets/schema-search-bar/schema-search-bar.vue'),
+  
+        $elpisBoot: path.resolve(__dirname, '../../pages/boot.js'),
+        $elpisStore:  path.resolve(__dirname, '../../pages/store'),
+        ...aliasMap
       }
+    })(),
+    // 添加 fallback 配置以解决 Node.js 核心模块在浏览器环境中的问题
+    fallback: {
+      "process": false
+    }
+    
   },
 
 
@@ -155,7 +215,8 @@ module.exports = {
     }),
 
     // 构造最终渲染的页面模板
-    ...HtmlWebpackPluginList
+    ...elpisHtmlWebpackPluginList,
+    ...businessHtmlWebpackPluginList
   ],
   
 
@@ -208,4 +269,4 @@ module.exports = {
     topLevelAwait: true,
   },
 
-}
+},businessWebpackConfig)

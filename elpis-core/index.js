@@ -66,12 +66,23 @@ module.exports = {
     controllerLoader(app);
     console.log(`-- [start] controller done --`);
 
-    // 注册全局中间件
+    // 注册 elpis 中间件
+    try {
+      const elpisMiddlewarePath = path.resolve(__dirname, `..${sep}app${sep}middleware`);
+      const elpisMiddleware =require(elpisMiddlewarePath)
+      elpisMiddleware(app);
+      console.log(`-- [start] load elpis middleware done --`);
+    } catch (e) {
+      console.log(`-- [exception] load elpis middleware error: ${e.message} --`);
+    }
+
+
+    // 注册业务中间件
     try {
       require(`${app.businessPath}${sep}middleware.js`)(app);
-      console.log(`-- [start] load global middleware done --`);
+      console.log(`-- [start] load business middleware done --`);
     } catch (e) {
-      console.log(`-- [exception] there is no global middleware file --`);
+      console.log(`-- [exception] there is no business middleware file --`);
     }
 
     // 加载路由

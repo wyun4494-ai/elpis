@@ -30,9 +30,9 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import $curl from '$common/curl.js'
+import $curl from '$elpisCommon/curl.js'
 import {  ElMessageBox, ElNotification } from 'element-plus'
-import SchemaTable from '$widgets/schema-table/schema-table.vue'
+import SchemaTable from '$elpisWidgets/schema-table/schema-table.vue'
 
 const {
   api,

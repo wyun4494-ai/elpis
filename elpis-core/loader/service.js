@@ -11,28 +11,40 @@ const { sep } = path
  * 例如
  * app/service
  *    |
- *    | -- custom-moudle
+ *    | -- custom-module
  *               |
- *               | -- costom-service.js 
- * => app.service.customMoudle.costomService
+ *               | -- custom-service.js 
+ * => app.service.customModule.customService
  */ 
 
 module.exports = (app) => {
-  // 拼接服务层文件所在目录的完整路径 (如: D:\Elpis\app\service)
-  const servicePath = path.resolve(app.businessPath, `.${sep}service`);
-  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
-  const fileList = glob.sync(path.resolve(servicePath, `.${sep}**${sep}**.js`));
 
   // 遍历所有文件目录，把内容加载到app.service 下
   const service = {}; 
-  fileList.forEach(file => {
+
+  // 拼接服务层文件所在elpis目录的完整路径 (如: D:\Elpis\app\service)
+  const elpisServicePath = path.resolve(__dirname, `..${sep}..${sep}app${sep}service`);
+  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
+  const elpisFileList = glob.sync(path.resolve(elpisServicePath, `.${sep}**${sep}**.js`));
+  elpisFileList.forEach(file => {
+    handleFile(file);
+  });
+  // 拼接服务层文件所在业务目录的完整路径 (如: 业务根目录\app\service)
+  const businessServicePath = path.resolve(app.businessPath, `.${sep}service`);
+  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
+  const businessFileList = glob.sync(path.resolve(businessServicePath, `.${sep}**${sep}**.js`));  
+  businessFileList.forEach(file => {
+    handleFile(file); 
+  });
+
+  function handleFile(file) {
     // 提取文件名
     let name = path.resolve(file);
 
-    // 截取路径 => app/service/custom-moudle/costom-service.js => custom-moudle/costom-service
+    // 截取路径 => app/service/custom-module/custom-service.js => custom-module/custom-service
     name = name.substring(name.lastIndexOf(`service${sep}`) + `service${sep}`.length, name.lastIndexOf('.'))
 
-    // 把'-'统一成驼峰式,custom-moudle/costom-service => customMoudle/costomService
+    // 把'-'统一成驼峰式,custom-module/custom-service => customModule/customService
     name = name.replace(/[_-][a-z]/ig, (s) => s.substring(1).toUpperCase());
 
     // 挂载 service 到内容 app 对象中
@@ -47,9 +59,9 @@ module.exports = (app) => {
       if (i === names.length - 1){
         // 创建服务层实例对象
         // 1. 加载服务层模块并传入app实例，获取返回的服务层类
-        const serviceMoule = require(path.resolve(file))(app);
+        const serviceModule = require(path.resolve(file))(app);
         // 2. 实例化服务层类，创建具体的服务层对象实例
-        tempService[names[i]] = new serviceMoule();     
+        tempService[names[i]] = new serviceModule();     
       }else{
         // 处理服务层目录结构
         // 如果当前层级的对象不存在，则创建空对象
@@ -60,7 +72,8 @@ module.exports = (app) => {
         tempService = tempService[names[i]]
       }
     }
-  });
-  // 挂载 middlewares 到内容 app 对象中
+  } 
+
+  // 挂载 service 到内容 app 对象中
   app.service = service;
 } 

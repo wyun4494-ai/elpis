@@ -11,28 +11,38 @@ const { sep } = path
  * 例如
  * app/middleware
  *    |
- *    | -- custom-moudle
+ *    | -- custom-module
  *               |
- *               | -- costom-middleware.js 
- * => app.middlewares.customMoudle.costomMiddleware
+ *               | -- custom-middleware.js 
+ * => app.middlewares.customModule.customMiddleware
  */ 
 
 module.exports = (app) => {
-  // 拼接中间件文件所在目录的完整路径 (如: D:\Elpis\app\middleware)
-  const middlewarePath = path.resolve(app.businessPath, `.${sep}middleware`);
-  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
-  const fileList = glob.sync(path.resolve(middlewarePath, `.${sep}**${sep}**.js`));
-
   // 遍历所有文件目录，把内容加载到app.middlewares下
-  const middlewares = {}; 
-  fileList.forEach(file => {
+  const middlewares = {};
+  
+  // 拼接中间件文件所在elpis目录的完整路径 (如: D:\Elpis\app\middleware)
+  const elpisMiddlewarePath = path.resolve(__dirname, `..${sep}..${sep}app${sep}middleware`);
+  // 使用glob模式匹配查找所有嵌套目录下的.js文件 (**表示任意层级子目录)
+  const elpisFileList = glob.sync(path.resolve(elpisMiddlewarePath, `.${sep}**${sep}**.js`));
+  elpisFileList.forEach(file => {
+    handleFile(file);
+  });
+  // 拼接中间件文件所在业务目录的完整路径 (如: 业务根目录\app\middleware)
+  const businessMiddlewarePath = path.resolve(app.businessPath, `.${sep}middleware`);
+  const businessFileList = glob.sync(path.resolve(businessMiddlewarePath, `.${sep}**${sep}**.js`));
+  businessFileList.forEach(file => {
+    handleFile(file);
+  });
+
+  function handleFile(file) {
     // 提取文件名
     let name = path.resolve(file);
 
-    // 截取路径 => app/middleware/custom-moudle/costom-middleware.js => custom-moudle/costom-middleware
+    // 截取路径 => app/middleware/custom-module/custom-middleware.js => custom-module/custom-middleware
     name = name.substring(name.lastIndexOf(`middleware${sep}`) + `middleware${sep}`.length, name.lastIndexOf('.'))
 
-    // 把'-'统一成驼峰式,custom-moudle/costom-middleware => customMoudle/costomMiddleware
+    // 把'-'统一成驼峰式,custom-module/custom-middleware => customModule/customMiddleware
     name = name.replace(/[_-][a-z]/ig, (s) => s.substring(1).toUpperCase());
 
     // 挂载 middlewares 到内容 app 对象中
@@ -46,7 +56,7 @@ module.exports = (app) => {
        // 判断是否为最后一层
       if (i === names.length - 1){
         // 创建中间件对象
-        tempMiddleware[names[i]] = require(path.resolve(file))(app);      
+        tempMiddleware[names[i]] = require(path.resolve(file))(app);
       }else{
         // 处理中间层目录结构
         // 如果当前层级的对象不存在，则创建空对象
@@ -57,7 +67,7 @@ module.exports = (app) => {
         tempMiddleware = tempMiddleware[names[i]]
       }
     }
-  });
+  }
   // 挂载 middlewares 到内容 app 对象中
   app.middlewares = middlewares;
 } 

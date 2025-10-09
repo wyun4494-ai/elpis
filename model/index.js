@@ -19,7 +19,7 @@ const projectExtendModel = (model, project) => {
       // 处理修改和保留
       for(let i = 0; i < modelValue.length; i++) {
         // 获取menu数据
-        let modelItem = modelValue[i];
+        let modelItem = modelValue[i]; 
         // 获取和modelitem里的key值相同的projectitem
         const projectItem = projectValue.find(projectItem => projectItem.key === modelItem.key )
 
@@ -58,7 +58,7 @@ module.exports = (app) => {
   const modelList = [];
 
   // 遍历当前文件夹，构造模型数据结构，挂载到 modelList 上 
-  const modelPath = path.resolve(app.baseDir, `.${sep}model`);
+  const modelPath = path.resolve(process.cwd(), `.${sep}model`);
   const fileList = glob.sync(path.resolve(modelPath, `.${sep}**${sep}**.js`));
   fileList.forEach(file => {
     // 跳过当前文件(index.js)自身

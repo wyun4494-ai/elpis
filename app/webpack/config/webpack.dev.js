@@ -1,14 +1,18 @@
 const webpack = require('webpack')
 const path = require('path')
 const merge = require('webpack-merge')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 
 // 基类配置
 const baseConfig = require('./webpack.base.js')
 
+// 获取elpis的node_modules路径
+const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+
 // deserver 配置
 const DEV_SERVER_CONFIG = {
   HOST: '127.0.0.1',
-  PORT: 9002,
+  PORT: 9004,
   HMR_PATH: '/__webpack_hmr', // 默认
   TIMEOUT: 20000
 }
@@ -19,13 +23,13 @@ Object.keys(baseConfig.entry).forEach(v => {
   if ( v !== 'vendor' ){
     baseConfig.entry[v] = [
       baseConfig.entry[v],
-    `webpack-hot-middleware/client?path=http://${DEV_SERVER_CONFIG.HOST}:${DEV_SERVER_CONFIG.PORT}${DEV_SERVER_CONFIG.HMR_PATH}&timeout=${DEV_SERVER_CONFIG.TIMEOUT}&reload=true`
+    `${path.resolve(elpisNodeModulesPath, 'webpack-hot-middleware/client')}?path=http://${DEV_SERVER_CONFIG.HOST}:${DEV_SERVER_CONFIG.PORT}${DEV_SERVER_CONFIG.HMR_PATH}&timeout=${DEV_SERVER_CONFIG.TIMEOUT}&reload=true`
     ]
   }
 })
 
 // 生产环境 webpack 配置
-const webpackDevConfig = merge(baseConfig, {
+const webpackDevConfig = merge.smart(baseConfig, {
   // 指定开发环境配置
   mode: 'development',
 
@@ -49,8 +53,20 @@ const webpackDevConfig = merge(baseConfig, {
     new webpack.HotModuleReplacementPlugin({
       // 启用多步编译模式
       multiStep: true  
-    })  
+    }),
+    // 每次build前 ， 清空 public/dist 目录
+    new CleanWebpackPlugin(['public/dist'], {
+      // 设置清理操作的根目录为 ./app 目录
+      root: path.resolve(process.cwd(),'./app'),
+      // 指定不需要删除的文件或目录（排除 static 目录）
+      exclude: ['public/static'],
+      // 启用详细日志输出，显示删除过程
+      verbose: true,
+      // 设置为 false 表示执行实际删除操作（true 为模拟删除）
+      dry: false
+    }),
   ]
+
 })
 
 module.exports = {
