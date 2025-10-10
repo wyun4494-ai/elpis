@@ -92,7 +92,7 @@ module.exports = {
     
     // 启动服务
     try {
-      const port = process.env.PORT || 8080;
+      const port = process.env.PORT || 8083;
       const host = process.env.HOST || '0.0.0.0';
       app.listen(port, host);
       console.log(`Server running on port:${port}`);

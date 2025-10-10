@@ -7,7 +7,7 @@ const merge = require('webpack-merge')
 const fs = require('fs')
 
 // 获取elpis的node_modules路径
-const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+// const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
 
 
 // 动态构造 elpisPageEntries 和 elpisHtmlWebpackPluginList
@@ -71,7 +71,7 @@ module.exports = merge.smart({
     rules: [{
       test: /\.vue$/,
       use: {
-        loader: path.resolve(elpisNodeModulesPath, 'vue-loader')
+        loader: 'vue-loader'
       }
     }, {
       test: /\.js$/,
@@ -82,12 +82,12 @@ module.exports = merge.smart({
         path.resolve(process.cwd(), './app/pages')
       ],
       use: {
-        loader: path.resolve(elpisNodeModulesPath, 'babel-loader'),
+        loader: 'babel-loader',
         options: {
           sourceType: 'module',
           // 添加配置以正确处理 ES6 模块
         presets: [
-          [path.resolve(elpisNodeModulesPath, '@babel/preset-env'), {
+          ['@babel/preset-env', {
             // 移除 modules: false 配置，让 Babel 自动处理模块转换
             targets: {
               browsers: ['last 2 versions', 'ie >= 11']
@@ -95,7 +95,7 @@ module.exports = merge.smart({
           }]
         ],
         plugins: [
-          path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')
+'@babel/plugin-transform-runtime'
         ]
         }
       }
@@ -105,11 +105,11 @@ module.exports = merge.smart({
         include: [
           path.resolve(__dirname, '../../pages')
         ],
-        use: path.resolve(elpisNodeModulesPath, 'babel-loader') // 复用已配置的 babel-loader
+        use: 'babel-loader' // 复用已配置的 babel-loader
       }, {
       test: /\.(png|jpe?g|gif)(\?.+)?$/,
       use: {
-        loader: path.resolve(elpisNodeModulesPath, 'url-loader'),
+        loader: 'url-loader',
         options: {
           limit: 300,
           esModule: false
@@ -118,23 +118,23 @@ module.exports = merge.smart({
     }, {
       test: /\.css$/,
       use: [{
-        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
+        loader: 'style-loader'
       }, {
-        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
+        loader: 'css-loader'
       }]
     }, {
       test: /\.less$/,
       use: [{
-        loader: path.resolve(elpisNodeModulesPath, 'style-loader')
+        loader: 'style-loader'
       }, {
-        loader: path.resolve(elpisNodeModulesPath, 'css-loader')
+        loader: 'css-loader'
       }, {
-        loader: path.resolve(elpisNodeModulesPath, 'less-loader')
+        loader: 'less-loader'
       }]
     }, {
       test: /\.[eot|svg|ttf|woff|woff2]$/,
       use: {
-        loader: path.resolve(elpisNodeModulesPath, 'file-loader')
+        loader: 'file-loader'
       }
     }]
   },
@@ -168,7 +168,7 @@ module.exports = merge.smart({
       aliasMap['$businessSearchItemConfig'] = fs.existsSync(businessSearchItemConfig) ? businessSearchItemConfig : blankModulePath
 
       return {
-        'vue': path.resolve(__dirname, '../../../node_modules/vue'),
+        'vue': 'vue',
         $elpisPage: path.resolve(__dirname, '../../pages'),
         $elpisCommon: path.resolve(__dirname, '../../pages/common'),
         $elpisCurl: path.resolve(__dirname, '../../pages/common/curl'),

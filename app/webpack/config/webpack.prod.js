@@ -5,11 +5,13 @@ const HappyPack = require('happypack')
 
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+// const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin')    
 const TerserWebpackPlugin = require('terser-webpack-plugin')
 
-const elpisNodeModulesPath = path.resolve(process.cwd(), './node_modules');
+// 优先从当前工作目录的 node_modules 查找（支持从业务项目查找）
+// 如果业务项目安装了依赖，会从业务项目的 node_modules 查找
+// const elpisNodeModulesPath = path.resolve(process.cwd(), './node_modules');
 
 // 多线程 build 配置
 const happypackCommonConfig = {
@@ -45,7 +47,7 @@ const webpackProdConfig = merge(baseConfig, {
         // 1. 提取 loader（负责提取 CSS）
         MiniCssExtractPlugin.loader,
         // 2. CSS loader（负责解析 CSS）
-        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=css`
+        `happypack/loader?id=css`
       ]
     }, {
       test: /\.js$/,
@@ -56,7 +58,7 @@ const webpackProdConfig = merge(baseConfig, {
         path.resolve(process.cwd(), './app/pages')
       ],
       use: [
-        `${path.resolve(elpisNodeModulesPath, 'happypack/loader')}?id=js`,
+        `happypack/loader?id=js`,
       ]
     }]
   },
@@ -84,8 +86,8 @@ const webpackProdConfig = merge(baseConfig, {
       chunkFilename: 'css/[name].[contenthash:8].bundle.css',
     }),
 
-    // 优化并压缩css资源
-    new CssMinimizerPlugin(),
+    // 优化并压缩css资源 - 暂时禁用
+    // new CssMinimizerPlugin(),
     
     // 多线程打包 js ，加快打包速度 
     new HappyPack({
@@ -96,15 +98,14 @@ const webpackProdConfig = merge(baseConfig, {
       id: 'js',
 
       // 配置需要使用的loader
-      loaders: [`${path.resolve(elpisNodeModulesPath, 'babel-loader')}?${JSON.stringify({
-        // Babel预设配置，用于转换ES6+语法到兼容性更好的ES5
-        presets: [`${path.resolve(elpisNodeModulesPath, '@babel/preset-env')}`],
-        // Babel插件配置
-        plugins: [
-          // 优化Babel生成的代码，减少重复的帮助函数代码
-          `${path.resolve(elpisNodeModulesPath, '@babel/plugin-transform-runtime')}`
-        ]
-      })}`]
+      // 使用字符串名称而不是绝对路径，让 webpack 自动解析
+      loaders: [{
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env'],
+          plugins: ['@babel/plugin-transform-runtime']
+        }
+      }]
     }),
 
     // 多线程打包 css 
@@ -112,7 +113,7 @@ const webpackProdConfig = merge(baseConfig, {
       ...happypackCommonConfig,
       id: 'css',
       loaders: [{
-        path: `${path.resolve(elpisNodeModulesPath, 'css-loader')}`,
+        loader: 'css-loader',
         options: {
           importLoaders: 1
         }
@@ -137,6 +138,7 @@ const webpackProdConfig = merge(baseConfig, {
       new TerserWebpackPlugin({  
         parallel: true, // 启用缓存来加速构建过程
         cache: true, // 利用多核 CPU 的优势来提升构建速度
+        extractComments: false, // 禁用提取注释文件，避免冲突
         terserOptions: { 
           compress: {
             drop_console: true, // 删除所有 console.* 语句

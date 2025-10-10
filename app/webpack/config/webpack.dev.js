@@ -7,7 +7,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 const baseConfig = require('./webpack.base.js')
 
 // 获取elpis的node_modules路径
-const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
+// const elpisNodeModulesPath = path.resolve(__dirname, '../../../node_modules');
 
 // deserver 配置
 const DEV_SERVER_CONFIG = {
@@ -23,7 +23,7 @@ Object.keys(baseConfig.entry).forEach(v => {
   if ( v !== 'vendor' ){
     baseConfig.entry[v] = [
       baseConfig.entry[v],
-    `${path.resolve(elpisNodeModulesPath, 'webpack-hot-middleware/client')}?path=http://${DEV_SERVER_CONFIG.HOST}:${DEV_SERVER_CONFIG.PORT}${DEV_SERVER_CONFIG.HMR_PATH}&timeout=${DEV_SERVER_CONFIG.TIMEOUT}&reload=true`
+    `webpack-hot-middleware/client?path=http://${DEV_SERVER_CONFIG.HOST}:${DEV_SERVER_CONFIG.PORT}${DEV_SERVER_CONFIG.HMR_PATH}&timeout=${DEV_SERVER_CONFIG.TIMEOUT}&reload=true`
     ]
   }
 })
