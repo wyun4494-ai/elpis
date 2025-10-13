@@ -17,7 +17,7 @@ module.exports = () => {
   const compiler = webpack(webpackDevConfig);
   
   // 构建静态文件目录
-  app.use(express.static(path.join(__dirname, '../public/dist')))
+  app.use(express.static(path.join(process.cwd(), './app/public/dist')))
   
   // 引用 devMiddleware 中间件 监控文件改动
   app.use(devMiddleware(compiler, {

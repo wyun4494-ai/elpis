@@ -146,6 +146,12 @@ module.exports = merge.smart({
   // 配置 模块解析时的具体行为（定义在webpack在打包时，如何找到并解析具体模块的路径）
   // 例如设置模块查找目录、文件扩展名、别名等
   resolve: {
+    // 配置模块查找目录，优先查找业务项目的 node_modules，然后查找 elpis 的 node_modules
+    modules: [
+      path.resolve(process.cwd(), 'node_modules'),  // 业务项目的 node_modules
+      path.resolve(__dirname, '../../../node_modules'),  // elpis 的 node_modules
+      'node_modules'  // 默认 node_modules
+    ],
     extensions: ['.js', '.vue', '.css', '.less'],
     alias: (() => {
       const aliasMap = {}

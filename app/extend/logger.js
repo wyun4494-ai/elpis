@@ -16,7 +16,7 @@ module.exports = (app) => {
     log4js.configure({  
       // 配置日志输出方式（追加器）
       appenders: {
-        // 控制台输出                             
+        // 控制台输出
         console:{
           type: 'console'
         },

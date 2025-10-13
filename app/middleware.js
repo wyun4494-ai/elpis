@@ -6,6 +6,7 @@
     // 将app/public目录设置为静态文件服务目录
     // 这样可以直接通过URL访问该目录下的文件，如CSS、JS、图片等
     // path.resolve(process.cwd(), './app/public')将相对路径解析为绝对路径
+    app.use(KoaStatic(path.resolve(__dirname, './public'))) 
     app.use(KoaStatic(path.resolve(process.cwd(), './app/public')))
 
     // 引入koa-nunjucks-2中间件
