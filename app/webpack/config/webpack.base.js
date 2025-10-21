@@ -95,7 +95,7 @@ module.exports = merge.smart({
           }]
         ],
         plugins: [
-'@babel/plugin-transform-runtime'
+          '@babel/plugin-transform-runtime'
         ]
         }
       }
@@ -172,6 +172,10 @@ module.exports = merge.smart({
       // schema-search-bar 业务扩展 配置
       const businessSearchItemConfig = path.resolve(process.cwd(), './app/pages/widgets/schema-search-bar/search-item-config.js')
       aliasMap['$businessSearchItemConfig'] = fs.existsSync(businessSearchItemConfig) ? businessSearchItemConfig : blankModulePath
+
+      // header-container 业务扩展 配置
+      const businessHeaderConfig = path.resolve(process.cwd(), './app/pages/widgets/header-container/header-config.js')
+      aliasMap['$businessHeaderConfig'] = fs.existsSync(businessHeaderConfig) ? businessHeaderConfig : blankModulePath
 
       return {
         'vue': 'vue',

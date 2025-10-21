@@ -44,8 +44,18 @@ module.exports = () => {
   app.use(hotMiddleware(compiler, {
     path: `${DEV_SERVER_CONFIG.HMR_PATH}`,
     log: () => {
-    }
+    },
+    // 添加 CORS 配置
+    heartbeat: 10 * 1000
   }))
+  
+  // 为 HMR 路径添加 CORS 头
+  app.use(`${DEV_SERVER_CONFIG.HMR_PATH}`, (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
+    next();
+  });
   
   consoler.info('请等待webpack初次构建完成提示......')
   

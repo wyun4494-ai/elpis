@@ -25,9 +25,13 @@ const emit = defineEmits(['loaded'])
 const dtoValue = ref()
 
 const getValue = () => {
-  return dtoValue.value !== undefined ? {
+  // 如果值为空字符串或undefined，则不传递该参数
+  if (dtoValue.value === undefined || dtoValue.value === '') {
+    return {}
+  }
+  return {
     [schemaKey]: dtoValue.value
-  } : {}
+  }
 }
 
 const reset = () => {

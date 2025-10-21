@@ -45,7 +45,7 @@ module.exports = {
     // 加载配置
     configLoader(app);
     console.log(`-- [start] config done --`);
-        
+
     // 加载扩展
     extendLoader(app);
     console.log(`-- [start] extend done --`);
@@ -82,7 +82,7 @@ module.exports = {
       require(`${app.businessPath}${sep}middleware.js`)(app);
       console.log(`-- [start] load business middleware done --`);
     } catch (e) {
-      console.log(`-- [exception] there is no business middleware file --`);
+      console.log(`-- [exception] there is no business middleware file --`);  
     }
 
     // 加载路由

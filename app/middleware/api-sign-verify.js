@@ -2,13 +2,18 @@ const md5 = require("md5");
 
 module.exports = (app) => { 
   return async (ctx, next) => { 
+    // 校验白名单
+    if(app.config?.apiSignVerify?.whiteList?.includes(ctx.path)) {
+      return await next()
+    }
+
     // 只对API请求做签名校验
     if (ctx.path.indexOf('/api') < 0 ){
       return await next()
     }
 
     // 获取请求路径、方法和请求头信息
-    const { path, method} = ctx;
+    const { path, method } = ctx;
     const { headers} = ctx.request;
     // 从请求头中获取签名和时间戳
     const { s_sign: sSign, s_t: st} = headers;

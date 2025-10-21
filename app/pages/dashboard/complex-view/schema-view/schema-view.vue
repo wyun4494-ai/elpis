@@ -81,7 +81,7 @@ function showComponent({ btnConfig, rowData }) {
   };
 
   const comRef = comListRef.value.find(item => item.name === comName);
-  if(!comRef && typeof comRef.show !== 'function') {
+  if(!comRef || typeof comRef.show !== 'function') {
     console.error('配置不正确');
     return
   };

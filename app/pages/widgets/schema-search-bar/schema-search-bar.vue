@@ -13,7 +13,7 @@
       <!-- 展示子组件 -->
       <component
         :is="SearchItemConfig[schemaItem.option?.comType]?.component"
-        :ref="searchComList"
+        ref="searchComList"
         :schema-key="key"
         :schema="schemaItem"
         @loaded="handleChildLoaded"

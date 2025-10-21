@@ -76,7 +76,7 @@ function removeData({ btnConfig, rowData })  {
   }
 
   ElMessageBox.confirm(
-    `确认删除 ${rowData['product_name']} 数据吗？`,
+    `确认删除 ${removeKey}: ${rowData[removeKey]} 数据吗？`,
     'warning',
     {
       confirmButtonText: '确定',

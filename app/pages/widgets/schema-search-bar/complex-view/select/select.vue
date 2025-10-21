@@ -32,13 +32,17 @@ const emit = defineEmits(['loaded'])
 const dtoValue = ref()
 
 const getValue = () => {
-  return dtoValue.value !== undefined ? {
+  // 如果值为-999（全部选项），则不传递该参数
+  if (dtoValue.value === -999) {
+    return {}
+  }
+  return dtoValue.value !== undefined && dtoValue.value !== '' ? {
     [schemaKey]: dtoValue.value
   } : {}
 }
 
 const reset = () => {
-  dtoValue.value = schema?.option?.default ?? schema.option?.enumList?.[0]?.value ?? '';
+  dtoValue.value = schema?.option?.default ?? schema.option?.enumList?.[0]?.value ?? undefined;
   return
 }
 

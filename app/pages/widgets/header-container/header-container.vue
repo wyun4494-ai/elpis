@@ -34,20 +34,10 @@
         >
           <!-- 插槽： 设置区域 -->
           <slot name="setting-content" />
-          <img 
-            src="./asserts/avatar.png"
-            class="avatar"
-          >
-          <el-dropdown @command="handleUserCommand">
-            <span class="username">
-              {{ userName }} <i class="el-icon-arrow-down el-icon--right" />
-            </span>
-            <template #dropdown>
-              <el-dropdown-item command="logout">
-                退出登录
-              </el-dropdown-item>
-            </template>
-          </el-dropdown>
+          <component
+            :is="businessHeaderConfig?.userPanel?.component"
+            v-if="businessHeaderConfig?.userPanel?.component"
+          />
         </el-row>
       </el-row>
     </el-header>
@@ -60,7 +50,8 @@
   </el-container>
 </template>
 <script setup>
-import { ref } from 'vue'
+// import { ref } from 'vue'
+import businessHeaderConfig from '$businessHeaderConfig'
 
 defineProps({
   title: {
@@ -68,11 +59,6 @@ defineProps({
     default: ''
   }
 })
-
-const userName = ref('小吴')
-const handleUserCommand = function(event) {
-  console.log(event)
- }
 </script>
 
 <style lang="less">
@@ -115,22 +101,6 @@ const handleUserCommand = function(event) {
       margin-left: auto;
       width: 180px;
       min-width: 180px;
-      
-      .avatar {
-        margin-right: 10px;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-      }
-      
-      .username {
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        height: 60px;
-        line-height: 60px;
-        outline: none;
-      }
     }
   }
   
