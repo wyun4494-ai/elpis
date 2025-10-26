@@ -56,10 +56,9 @@
 </template>
 
 <script setup>
-import { ref, toRefs, watch, onMounted, inject } from 'vue'
+import { ref, toRefs, watch, onMounted } from 'vue'
 import $curl from '$elpisCommon/curl.js'
 
-const ajv = inject('ajv')
 const props = defineProps({
   schema: {
     type: Object,

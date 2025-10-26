@@ -110,12 +110,9 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import $curl from '$elpisCommon/curl.js'
-
-const schemaViewData = inject('schemaViewData', {})
-const config = computed(() => schemaViewData.components?.value?.attributeConfig?.config || {})
 
 const emit = defineEmits(['command'])
 
