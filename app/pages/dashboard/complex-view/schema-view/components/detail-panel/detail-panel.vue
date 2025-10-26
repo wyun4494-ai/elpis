@@ -29,7 +29,7 @@
             <br>  
           </el-row>
           <el-row class="item-value">
-            {{ dotModel[key] }}
+            {{ formatValue(key, dotModel[key], item) }}
           </el-row>
         </el-row>
       </el-card>
@@ -70,6 +70,21 @@ const show = (rowData) => {
   fetchFormData()
 }
 
+
+// 格式化显示值
+const formatValue = (key, value, item) => {
+  // 检查是否是状态字段（支持 status 和 shelf_status）
+  if (key === 'status' || key === 'shelf_status' || item.label === '状态') {
+    if (value === 0 || value === '0') {
+      return '下架'
+    } else if (value === 1 || value === '1') {
+      return '上架'
+    }
+  }
+  
+  // 其他字段直接返回原值
+  return value
+}
 
 // 获取表单数据
 const fetchFormData = async () => {

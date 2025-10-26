@@ -73,7 +73,7 @@ module.exports = (app) => {
       const modelKey = file.match(/model[/\\]([^/\\]+)[/\\]project/)?.[1];
       // 从文件路径中提取project名称，例如从 model/business/project/pdd.js 提取 pdd
       const projectKey = file.match(/project[/\\]([^/\\]+)\.js/)?.[1];
-      
+
       // 在modelList中查找是否已存在该modelKey对应的modelItem
       let modelItem = modelList.find(item => item.model?.key === modelKey)
       // 如果没有找到对应的modelItem，则创建一个新的对象并添加到modelList中

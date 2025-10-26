@@ -61,7 +61,8 @@ const onSearch = (searchValObj) => {
 }
 
 const eventHandlerMap = {
-  showComponent: showComponent
+  showComponent: showComponent,
+  viewSubCategories: viewSubCategories
 }
 
 // 表格操作
@@ -87,6 +88,20 @@ function showComponent({ btnConfig, rowData }) {
   };
   
   comRef.show(rowData);
+}
+
+// 查看子分类
+function viewSubCategories({ btnConfig, rowData }) {
+  const { parent_id, parent_name } = rowData;
+  
+  // 更新搜索条件：按 parent_id 筛选
+  apiParams.value = {
+    parent_id: parent_id,
+    _parent_name: parent_name  // 用于面包屑显示（前端使用）
+  };
+  
+  // 刷新表格
+  tablePanelRef.value.loadTableData();
 }
 
 // 处理来自子组件的命令

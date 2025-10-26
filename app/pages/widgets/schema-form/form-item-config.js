@@ -1,6 +1,13 @@
 import input from "./complex-view/input/input.vue"
 import inputNumber from "./complex-view/input-number/input-number.vue"
 import select from "./complex-view/select/select.vue"
+import switchComponent from "./complex-view/switch/switch.vue"
+import cascader from "./complex-view/cascader/cascader.vue"
+import remoteSelect from "./complex-view/remote-select/remote-select.vue"
+import upload from "./complex-view/upload/upload.vue"
+import attributeConfig from "./complex-view/attribute-config/attribute-config.vue"
+import paramSelector from "./complex-view/param-selector/param-selector.vue"
+import tagInput from "./complex-view/tag-input/tag-input.vue"
 
 // 业务扩展 form-item 配置
 import BusinessFormItemConfig from '$businessFormItemConfig'
@@ -14,6 +21,27 @@ const FormItemConfig = {
   },
   select: {
     component: select
+  },
+  switch: {
+    component: switchComponent
+  },
+  cascader: {
+    component: cascader
+  },
+  'remote-select': {
+    component: remoteSelect
+  },
+  upload: {
+    component: upload
+  },
+  'attribute-config': {
+    component: attributeConfig
+  },
+  'param-selector': {
+    component: paramSelector
+  },
+  'tag-input': {
+    component: tagInput
   }
 }
 

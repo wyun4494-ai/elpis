@@ -77,6 +77,11 @@
     "webpack-merge": "^4.2.1"
   },
   "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
+    "@types/json-schema": "^7.0.15",
+    "@types/web-bluetooth": "^0.0.21",
     "assert": "^2.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^8.57.0",

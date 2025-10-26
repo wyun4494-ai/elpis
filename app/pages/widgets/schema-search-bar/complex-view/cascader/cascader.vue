@@ -1,0 +1,174 @@
+<template>
+  <el-cascader
+    v-model="dtoValue"
+    class="cascader"
+    :options="options"
+    :props="cascaderProps"
+    :placeholder="placeholder"
+    clearable
+    @change="onChange"
+    @focus="onFocus"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import $curl from '$elpisCommon/curl.js'
+
+const { schema, schemaKey } = defineProps({
+  schema: {
+    type: Object,
+    default: () => ({})
+  },
+  schemaKey: {
+    type: String,
+    default: ''
+  }
+})
+
+const emit = defineEmits(['loaded'])
+
+const dtoValue = ref([])
+const options = ref([])
+const placeholder = ref('请选择')
+const isDataLoaded = ref(false)  // 标记数据是否已加载
+
+// Cascader 配置
+const cascaderProps = computed(() => {
+  return {
+    value: 'category_id',
+    label: 'category_name',
+    children: 'children',
+    checkStrictly: schema.option?.props?.checkStrictly ?? true,  // 搜索时默认可选任意级
+    lazy: true,
+    lazyLoad: loadCategoryChildren,
+    ...schema.option?.props
+  }
+})
+
+// 懒加载子分类
+const loadCategoryChildren = async (node, resolve) => {
+  const { level, value } = node
+  
+  // 超过4级不再加载
+  if (level >= 4) {
+    resolve([])
+    return
+  }
+  
+  try {
+    const res = await $curl({
+      method: 'get',
+      url: schema.option?.api || '/api/proj/category/children',
+      params: {
+        parent_id: value || null,
+        level: level + 1
+      }
+    })
+    
+    if (res && res.success && Array.isArray(res.data)) {
+      const children = res.data.map(item => ({
+        category_id: item.category_id,
+        category_name: item.category_name,
+        level: item.level,
+        leaf: item.has_children === 0
+      }))
+      resolve(children)
+    } else {
+      resolve([])
+    }
+  } catch (error) {
+    console.error('Load category error:', error)
+    resolve([])
+  }
+}
+
+// 加载根级分类（一级分类）
+const loadRootCategories = async () => {
+  // 避免重复加载
+  if (isDataLoaded.value) {
+    return
+  }
+  
+  isDataLoaded.value = true
+  
+  try {
+    const res = await $curl({
+      method: 'get',
+      url: schema.option?.api || '/api/proj/category/children',
+      params: {
+        parent_id: null,
+        level: 1
+      }
+    })
+    
+    if (res && res.success && Array.isArray(res.data)) {
+      options.value = res.data.map(item => ({
+        category_id: item.category_id,
+        category_name: item.category_name,
+        level: item.level,
+        leaf: item.has_children === 0
+      }))
+    }
+  } catch (error) {
+    console.error('Load root categories error:', error)
+    // 加载失败时，不阻塞页面，静默失败
+    options.value = []
+  }
+}
+
+// 获取搜索值
+const getValue = () => {
+  // 返回选中的最后一级分类ID
+  const value = Array.isArray(dtoValue.value) && dtoValue.value.length > 0
+    ? dtoValue.value[dtoValue.value.length - 1]
+    : null
+  
+  // 如果没有选择，不传递该参数
+  if (!value) {
+    return {}
+  }
+  
+  return {
+    [schemaKey]: value
+  }
+}
+
+// 重置
+const reset = () => {
+  dtoValue.value = schema?.option?.default || []
+}
+
+// 值变化
+const onChange = (value) => {
+  // 搜索栏不需要特殊处理
+}
+
+// 聚焦时加载数据（延迟加载，避免页面初始化时发起不必要的请求）
+const onFocus = () => {
+  loadRootCategories()
+}
+
+onMounted(() => {
+  placeholder.value = schema.option?.placeholder || '请选择'
+  reset()
+  
+  // 不在 onMounted 时加载数据，改为在用户聚焦时加载
+  // 这样可以避免页面初始化时发起大量请求
+  
+  // 通知搜索栏组件已加载完成
+  emit('loaded')
+})
+
+defineExpose({
+  getValue,
+  reset
+})
+</script>
+
+<style lang="less" scoped>
+.cascader {
+  width: 220px;
+}
+</style>
+

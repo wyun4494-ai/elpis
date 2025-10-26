@@ -34,6 +34,9 @@
         >
           <!-- 插槽： 设置区域 -->
           <slot name="setting-content" />
+          <!-- 主题切换 -->
+          <theme-switcher />
+          <!-- 用户面板 -->
           <component
             :is="businessHeaderConfig?.userPanel?.component"
             v-if="businessHeaderConfig?.userPanel?.component"
@@ -52,6 +55,7 @@
 <script setup>
 // import { ref } from 'vue'
 import businessHeaderConfig from '$businessHeaderConfig'
+import ThemeSwitcher from './complex-view/theme-switcher/theme-switcher.vue'
 
 defineProps({
   title: {
@@ -99,8 +103,8 @@ defineProps({
     // 右上方 设置区域
     .setting-panel {
       margin-left: auto;
-      width: 180px;
-      min-width: 180px;
+      width: auto;
+      min-width: 240px;
     }
   }
   

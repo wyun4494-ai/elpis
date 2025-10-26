@@ -29,7 +29,7 @@ export const useSchema = function() {
 
     const mItem = menuStore.findMenuItem({
       key: 'key',
-      value: key ?? sider_key
+      value: sider_key ?? key
     })
 
     // 不是 schema 模块时，清空并退出（不警告）

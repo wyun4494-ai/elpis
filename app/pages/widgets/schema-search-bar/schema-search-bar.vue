@@ -8,7 +8,7 @@
     <el-form-item
       v-for="(schemaItem, key) in schema.properties"
       :key="key"
-      :label="schemaItem.label"
+      :label="schemaItem.option?.label || schemaItem.label"
     >
       <!-- 展示子组件 -->
       <component

@@ -51,7 +51,7 @@ const setMenuList = function() {
     key: 'key',
     value: route.query.key
   })
-  if (menuItem || menuItem.siderConfig && menuItem.siderConfig.menu) {
+  if (menuItem && menuItem.siderConfig && menuItem.siderConfig.menu) {
     menuList.value = menuItem.siderConfig.menu
   }
 }
@@ -69,7 +69,7 @@ const setActiveKey = function() {
     key: 'key',
     value: route.query.key
   })
-  if (hMenuList || hMenuList.siderConfig && hMenuList.siderConfig.menu) {
+  if (hMenuList && hMenuList.siderConfig && hMenuList.siderConfig.menu) {
     const siderMenuList = hMenuList.siderConfig.menu
     siderMenuItem = menuStore.findFirstMenuItem(siderMenuList) // 递归查找第一个菜单
     if (siderMenuItem) {
@@ -83,7 +83,8 @@ const setActiveKey = function() {
 // 监听路由变化，设置 activeKey
 watch( [
   () => route.query.key,
-  () => menuStore.getMenuList
+  () => route.query.sider_key,
+  () => menuStore.menuList
 ], () => {
   setActiveKey()
   setMenuList()

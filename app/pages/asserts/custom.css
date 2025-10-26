@@ -10,3 +10,12 @@ input:-webkit-autofill {
   /* 覆盖自动填充背景颜色 */
   -webkit-box-shadow: 0 0 0px 1000px white inset ;
 }
+
+/* Element Plus 图片预览遮罩层优化 */
+.el-image-viewer__mask {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.el-image-viewer__wrapper {
+  z-index: 3000 !important;
+}

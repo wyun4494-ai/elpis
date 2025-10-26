@@ -30,9 +30,13 @@
 
 <script setup>
 import { ref, inject } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import $curl from '$elpisCommon/curl.js'
 import {  ElMessageBox, ElNotification } from 'element-plus'
 import SchemaTable from '$elpisWidgets/schema-table/schema-table.vue'
+
+const router = useRouter()
+const route = useRoute()
 
 const {
   api,
@@ -45,7 +49,11 @@ const schemaTableRef = ref(null)
 const emit = defineEmits(['operate'])
 
 const eventHandlerMap = {
-  remove: removeData
+  remove: removeData,
+  restore: restoreData,
+  permanentDelete: permanentDeleteData,
+  viewSubCategories: viewSubCategories,
+  navigate: navigateToPage
 }
 
 // 获取按钮事件名
@@ -75,21 +83,32 @@ function removeData({ btnConfig, rowData })  {
     removeValue = rowData[removeValueList[1]]
   }
 
-  ElMessageBox.confirm(
-    `确认删除 ${removeKey}: ${rowData[removeKey]} 数据吗？`,
-    'warning',
+  // 先输入删除原因
+  ElMessageBox.prompt(
+    `确认删除 ${removeKey}: ${rowData[removeKey]} 数据吗？请输入删除原因：`,
+    '删除商品',
     {
-      confirmButtonText: '确定',
+      confirmButtonText: '确定删除',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
+      inputPlaceholder: '请输入删除原因',
+      inputType: 'textarea',
+      inputValidator: (value) => {
+        if (!value || value.trim() === '') {
+          return '删除原因不能为空';
+        }
+        return true;
+      },
+      inputErrorMessage: '删除原因不能为空'
     }
-  ).then( async () => {
+  ).then( async ({ value }) => {
     schemaTableRef.value.showLoading()
     const res = await $curl({
       method: 'delete',
       url: api.value,
       data: {
-        [removeKey] : removeValue
+        [removeKey]: removeValue,
+        delete_reason: value  // 添加删除原因
       },
       errorMessage: '删除失败'
     })
@@ -114,6 +133,194 @@ function removeData({ btnConfig, rowData })  {
     })
   })
 }
+
+// 恢复数据
+function restoreData({ btnConfig, rowData }) {
+  const { eventOption } = btnConfig
+  if (!eventOption?.params) return;
+
+  const { params } = eventOption
+
+  const restoreKey = Object.keys(params)[0]
+  let restoreValue = params[restoreKey];
+
+  const restoreValueList = restoreValue.split('::')
+  if (restoreValueList[0] === 'schema' && restoreValueList[1]) {
+    restoreValue = rowData[restoreValueList[1]]
+  }
+
+  ElMessageBox.confirm(
+    `确认恢复 ${restoreKey}: ${rowData[restoreKey]} 数据吗？`,
+    'warning',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then( async () => {
+    schemaTableRef.value.showLoading()
+    const res = await $curl({
+      method: 'post',
+      url: '/api/proj/product/recycle/restore',
+      data: {
+        [restoreKey] : restoreValue
+      },
+      errorMessage: '恢复失败'
+    })
+    schemaTableRef.value.hideLoading()
+
+    if (!res || !res.success || !res.data) {
+      return
+    }
+    ElNotification.success({
+      title: '恢复成功',
+      message: `${restoreKey}: ${restoreValue} 恢复成功`,
+      type: 'success'
+    })
+
+    await initTableData()
+  })
+  .catch(() => {
+    ElNotification.info({
+      title: '取消恢复',
+      message: '已取消恢复操作',
+      type: 'info'
+    })
+  })
+}
+
+// 永久删除数据
+function permanentDeleteData({ btnConfig, rowData }) {
+  const { eventOption } = btnConfig
+  if (!eventOption?.params) return;
+
+  const { params } = eventOption
+
+  const deleteKey = Object.keys(params)[0]
+  let deleteValue = params[deleteKey];
+
+  const deleteValueList = deleteValue.split('::')
+  if (deleteValueList[0] === 'schema' && deleteValueList[1]) {
+    deleteValue = rowData[deleteValueList[1]]
+  }
+
+  ElMessageBox.confirm(
+    `确认永久删除 ${deleteKey}: ${rowData[deleteKey]} 数据吗？此操作不可恢复！`,
+    'error',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'error'
+    }
+  ).then( async () => {
+    schemaTableRef.value.showLoading()
+    const res = await $curl({
+      method: 'delete',
+      url: '/api/proj/product/recycle/permanent',
+      data: {
+        [deleteKey] : deleteValue
+      },
+      errorMessage: '永久删除失败'
+    })
+    schemaTableRef.value.hideLoading()
+
+    if (!res || !res.success || !res.data) {
+      return
+    }
+    ElNotification.success({
+      title: '永久删除成功',
+      message: `${deleteKey}: ${deleteValue} 永久删除成功`,
+      type: 'success'
+    })
+
+    await initTableData()
+  })
+  .catch(() => {
+    ElNotification.info({
+      title: '取消删除',
+      message: '已取消永久删除操作',
+      type: 'info'
+    })
+  })
+}
+
+// 查看子分类
+function viewSubCategories({ btnConfig, rowData }) {
+  const { eventOption } = btnConfig
+  if (!eventOption?.params) return;
+
+  const { params } = eventOption
+  
+  // 获取参数值
+  const getParamValue = (paramKey, paramValue) => {
+    const valueList = paramValue.split('::')
+    if (valueList[0] === 'schema' && valueList[1]) {
+      return rowData[valueList[1]]
+    }
+    return paramValue
+  }
+
+  const parentId = getParamValue('parent_id', params.parent_id)
+  const parentName = getParamValue('parent_name', params.parent_name)
+  const hasChildren = getParamValue('has_children', params.has_children)
+
+  // 检查是否有子分类
+  if (hasChildren === 0 || hasChildren === '0') {
+    ElNotification({
+      title: '提示',
+      message: `"${parentName}" 分类下暂无子分类`,
+      type: 'info'
+    })
+    return
+  }
+
+  // 如果有子分类，触发事件让父组件更新搜索条件
+  emit('operate', {
+    btnConfig: {
+      ...btnConfig,
+      eventKey: 'viewSubCategories'
+    },
+    rowData: {
+      parent_id: parentId,
+      parent_name: parentName
+    }
+  })
+}
+
+// 导航到其他页面（带参数）
+function navigateToPage({ btnConfig, rowData }) {
+  const { eventOption } = btnConfig
+  if (!eventOption || !eventOption.sider_key) return
+
+  // 构建查询参数
+  const query = {
+    key: route.query.key || 'product',
+    sider_key: eventOption.sider_key,
+    proj_key: route.query.proj_key
+  }
+
+  // 添加自定义参数
+  if (eventOption.params) {
+    Object.keys(eventOption.params).forEach(key => {
+      let value = eventOption.params[key]
+      
+      // 处理 schema::xxx 格式（从rowData中获取）
+      const valueList = value.split('::')
+      if (valueList[0] === 'schema' && valueList[1]) {
+        value = rowData[valueList[1]]
+      }
+      
+      query[key] = value
+    })
+  }
+
+  // 导航
+  router.push({
+    path: route.path,
+    query
+  })
+}
+
 const initTableData = async () => { 
   await schemaTableRef.value.initData()
 }

@@ -14,7 +14,18 @@
           :prop="key"
           :label="schemaItem.label"
           v-bind="schemaItem?.option"
-        />
+        >
+          <!-- 自定义列渲染 -->
+          <template v-if="schemaItem?.option?.comType" #default="scope">
+            <component
+              :is="getColumnComponent(schemaItem.option.comType)"
+              :schema="schemaItem"
+              :model-value="scope.row[key]"
+              :row-data="scope.row"
+              @change="(value, rowData) => handleColumnChange(key, value, rowData)"
+            />
+          </template>
+        </el-table-column>
       </template>
       <!-- 行为按钮组 -->
       <el-table-column
@@ -56,6 +67,7 @@
 <script setup>
 import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
 import $curl from '$elpisCommon/curl'
+import TableItemConfig from './table-item-config'
 
 const props =  defineProps({
   /**
@@ -225,6 +237,57 @@ const onPageSizeChange = async (value) => {
 const onCurrentPageChange = async (value) => {
   currentPage.value = value
   await loadTableData();
+}
+
+// 获取表格列组件
+const getColumnComponent = (comType) => {
+  return TableItemConfig[comType]?.component || 'span'
+}
+
+// 处理列值变化
+const handleColumnChange = async (key, value, rowData) => {
+  // 获取主键字段名（从 schema 中查找第一个有 tableOption 的字段作为主键）
+  const primaryKey = Object.keys(schema.value.properties).find(k => 
+    schema.value.properties[k].tableOption
+  ) || 'product_id';
+  
+  // 检查 rowData 是否有主键
+  if (!rowData || !rowData[primaryKey]) {
+    console.error('Row data is missing primary key:', primaryKey, rowData);
+    return;
+  }
+
+  try {
+    // 构建请求数据
+    const updateData = {
+      [primaryKey]: rowData[primaryKey],
+      [key]: value
+    };
+
+    // 调用更新API
+    const res = await $curl({
+      method: 'put',
+      url: api.value,
+      data: updateData,
+      successMessage: '更新成功',
+      errorMessage: '更新失败'
+    })
+
+    if (res && res.success) {
+      // 更新本地数据
+      const rowIndex = tableData.value.findIndex(row => row[primaryKey] === rowData[primaryKey])
+      if (rowIndex !== -1) {
+        tableData.value[rowIndex][key] = value
+      }
+    } else {
+      // 更新失败，刷新表格恢复数据
+      await loadTableData()
+    }
+  } catch (error) {
+    console.error('Column update error:', error)
+    // 发生错误时刷新表格恢复数据
+    await loadTableData()
+  }
 }
 
 defineExpose({
