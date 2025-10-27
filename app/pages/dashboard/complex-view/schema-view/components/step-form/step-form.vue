@@ -22,7 +22,6 @@
           ref="basicFormRef"
           :schema="basicInfoSchema"
           :model="basicInfo"
-          @change="handleBasicInfoChange"
         />
       </div>
 
@@ -61,6 +60,11 @@
                 ref="skuGeneratorRef"
                 :attributes="productTypeConfig.attributes"
                 @change="handleSkuChange"
+              />
+              <!-- 库存统计组件 -->
+              <inventory-stats
+                :total-inventory="basicInfo.inventory || 0"
+                :skus="skuData"
               />
             </div>
             <el-empty
@@ -104,6 +108,7 @@
             </el-button>
             <el-button
               type="primary"
+              :disabled="isInventoryOverLimit"
               @click="handleSubmit"
             >
               保存商品
@@ -139,6 +144,7 @@ import schemaForm from '$elpisWidgets/schema-form/schema-form.vue'
 import stepsIndicator from '$elpisWidgets/steps-indicator/steps-indicator.vue'
 import skuGenerator from './sku-generator.vue'
 import productParams from './product-params.vue'
+import inventoryStats from '$elpisWidgets/inventory-stats/inventory-stats.vue'
 
 // 从 schema-view 注入数据
 const schemaViewData = inject('schemaViewData', {})
@@ -202,6 +208,15 @@ const basicInfoSchema = computed(() => {
   }
 })
 
+// 计算库存是否超限
+const isInventoryOverLimit = computed(() => {
+  const totalInventory = basicInfo.value.inventory || 0
+  const allocatedInventory = skuData.value.reduce((sum, sku) => {
+    return sum + (parseInt(sku.inventory) || 0)
+  }, 0)
+  return allocatedInventory > totalInventory
+})
+
 // 显示表单
 const show = async (rowData = null) => {
   visible.value = true
@@ -221,16 +236,6 @@ const show = async (rowData = null) => {
     isEditMode.value = false
     editProductId.value = ''
     title.value = '添加商品'
-  }
-}
-
-// 基本信息变化
-const handleBasicInfoChange = async (formData) => {
-  basicInfo.value = formData
-  
-  // 如果选择了分类，加载商品类型配置
-  if (formData.category_id) {
-    await loadProductType(formData.category_id)
   }
 }
 

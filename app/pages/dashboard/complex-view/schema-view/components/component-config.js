@@ -6,6 +6,8 @@ import attributeListDrawer from "./attribute-list-drawer/attribute-list-drawer.v
 import paramListDrawer from "./param-list-drawer/param-list-drawer.vue"
 import addParamFromLibrary from "./add-param-from-library/add-param-from-library.vue"
 import createParamDialog from "./create-param-dialog/create-param-dialog.vue"
+import restockDialog from "./restock-dialog/restock-dialog.vue"
+import skuEditDialog from "./sku-edit-dialog/sku-edit-dialog.vue"
 
 // 业务扩展 component 配置
 import BusinessComponentConfig from '$businessComponentConfig'
@@ -34,6 +36,12 @@ const componentConfig = {
   },
   createParam: {
     component: createParamDialog
+  },
+  restockDialog: {
+    component: restockDialog
+  },
+  skuEditDialog: {
+    component: skuEditDialog
   }
 }
 

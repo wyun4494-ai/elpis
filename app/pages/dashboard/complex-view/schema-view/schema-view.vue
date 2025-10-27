@@ -50,7 +50,8 @@ provide('schemaViewData', {
   tableConfig,
   searchSchema,
   searchConfig,
-  components
+  components,
+  showComponent: ref(showComponent)
 });
 
 const comListRef = ref([]);
