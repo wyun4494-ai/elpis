@@ -219,10 +219,8 @@ const isInventoryOverLimit = computed(() => {
 
 // 显示表单
 const show = async (rowData = null) => {
-  visible.value = true
   currentStep.value = 0
   showAttributeDrawer.value = false
-  basicInfo.value = {}
   skuData.value = []
   paramsData.value = {}
   productTypeConfig.value = null
@@ -231,11 +229,18 @@ const show = async (rowData = null) => {
     isEditMode.value = true
     editProductId.value = rowData.product_id
     title.value = '编辑商品'
+    basicInfo.value = {}
+    
+    // 先加载数据，再显示表单
     await loadProductDetail(rowData.product_id)
+    await nextTick()
+    visible.value = true
   } else {
     isEditMode.value = false
     editProductId.value = ''
     title.value = '添加商品'
+    basicInfo.value = {}
+    visible.value = true
   }
 }
 
@@ -311,9 +316,7 @@ const loadProductDetail = async (productId) => {
     if (res && res.success && res.data) {
       const product = res.data
       
-      basicInfo.value = {}
-      await nextTick()
-      
+      // 直接设置完整数据,避免先设置空对象导致级联选择器重复初始化
       basicInfo.value = {
         product_name: product.product_name,
         category_id: product.category_id,

@@ -178,6 +178,14 @@ const loadInitialValue = async (categoryId) => {
   if (!categoryId) return
   
   try {
+    // 确保根分类已加载
+    if (!isDataLoaded.value) {
+      await loadRootCategories()
+    }
+    
+    // 等待根分类加载完成
+    await nextTick()
+    
     const res = await $curl({
       method: 'get',
       url: '/api/proj/category/path',
@@ -187,10 +195,14 @@ const loadInitialValue = async (categoryId) => {
     if (res && res.success && Array.isArray(res.data)) {
       const uniquePath = [...new Set(res.data)]
       
+      // 清空并重新设置，触发el-cascader刷新
       dotValue.value = []
       await nextTick()
       
       dotValue.value = uniquePath
+      
+      // 多次nextTick确保渲染完成
+      await nextTick()
       await nextTick()
     }
   } catch (error) {
@@ -202,8 +214,30 @@ onMounted(() => {
   initData()
 })
 
-watch([model, schema], () => {
-  initData()
+// 优化watch逻辑,避免重复初始化
+watch(model, async (newVal, oldVal) => {
+  // 值没变化不处理
+  if (newVal === oldVal) return
+  
+  // 如果新值为空或undefined,清空选择
+  if (!newVal) {
+    dotValue.value = []
+    return
+  }
+  
+  // 延迟执行，确保组件完全挂载
+  await nextTick()
+  await loadInitialValue(newVal)
+}, {
+  flush: 'post'  // 在DOM更新后执行
+})
+
+// 监听schema变化
+watch(schema, () => {
+  // schema变化时只需要重新加载根分类
+  if (!isDataLoaded.value) {
+    loadRootCategories()
+  }
 }, {
   deep: true,
   immediate: false
