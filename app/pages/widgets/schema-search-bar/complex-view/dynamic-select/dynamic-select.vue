@@ -48,12 +48,12 @@ const fetchEnumList = async () => {
       url: schema.option?.api,
       params: {}
     })
-    if(res?.data?.length > 0){
-      enumList.value.push(...res?.data)
+    if(res?.data && Array.isArray(res.data) && res.data.length > 0){
+      enumList.value.push(...res.data)
     }
 
-  }catch(e) {
-    console.log(e)
+  }catch(error) {
+    console.log(error)
   }
 }
 const reset = () => {

@@ -95,6 +95,23 @@
               description="请先选择商品分类"
             />
           </el-card>
+
+          <!-- 商品图片上传 -->
+          <el-card
+            shadow="never"
+            class="image-upload-card"
+          >
+            <template #header>
+              <div class="card-header-title">
+                商品图片
+              </div>
+            </template>
+            <schema-form
+              ref="imageFormRef"
+              :schema="imageUploadSchema"
+              :model="imageData"
+            />
+          </el-card>
         </div>
 
         <!-- 嵌套抽屉底部按钮 -->
@@ -165,10 +182,12 @@ const editProductId = ref('')
 const basicFormRef = ref(null)
 const skuGeneratorRef = ref(null)
 const productParamsRef = ref(null)
+const imageFormRef = ref(null)
 
 const basicInfo = ref({})
 const skuData = ref([])
 const paramsData = ref({})
+const imageData = ref({})
 const productTypeConfig = ref(null)
 
 // 步骤定义
@@ -176,6 +195,20 @@ const stepConfig = [
   { title: '填写商品信息' },
   { title: '填写商品属性' }
 ]
+
+// 商品图片上传Schema
+const imageUploadSchema = computed(() => {
+  if (!schema.value || !schema.value.properties || !schema.value.properties.product_images) {
+    return { type: 'object', properties: {} }
+  }
+  
+  return {
+    type: 'object',
+    properties: {
+      product_images: schema.value.properties.product_images
+    }
+  }
+})
 
 // 基本信息 Schema（从完整 schema 中提取）
 const basicInfoSchema = computed(() => {
@@ -187,7 +220,7 @@ const basicInfoSchema = computed(() => {
   
   // 提取基本信息字段（schema 已由 buildDtoSchema 处理过，字段已包含 option）
   const basicFields = [
-    'product_name', 
+    'product_name',
     'category_id', 
     'brand_id', 
     'item_number', 
@@ -223,6 +256,7 @@ const show = async (rowData = null) => {
   showAttributeDrawer.value = false
   skuData.value = []
   paramsData.value = {}
+  imageData.value = {}
   productTypeConfig.value = null
   
   if (rowData && rowData.product_id) {
@@ -327,6 +361,11 @@ const loadProductDetail = async (productId) => {
         shelf_status: product.shelf_status
       }
       
+      // 设置商品图片数据
+      imageData.value = {
+        product_images: product.product_images || []
+      }
+      
       await nextTick()
       
       if (product.category_id) {
@@ -341,8 +380,12 @@ const loadProductDetail = async (productId) => {
 // 提交表单
 const handleSubmit = async () => {
   try {
+    // 获取图片数据
+    const imageFormData = imageFormRef.value ? imageFormRef.value.getValue() : {}
+    
     const submitData = {
       ...basicInfo.value,
+      ...imageFormData,
       skus: skuData.value,
       params: paramsData.value
     }
@@ -411,6 +454,10 @@ defineExpose({
   }
   
   .param-config-card {
+    margin-bottom: 20px;
+  }
+  
+  .image-upload-card {
     margin-bottom: 20px;
   }
   

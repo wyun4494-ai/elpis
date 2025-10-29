@@ -54,7 +54,7 @@ const projectExtendModel = (model, project) => {
 */
 
  // 导出一个函数，接收app参数，用于构建model数据结构
-module.exports = (app) => {
+module.exports = (_app) => {
   const modelList = [];
 
   // 遍历当前文件夹，构造模型数据结构，挂载到 modelList 上 

@@ -2,7 +2,7 @@
   <div class="table-switch-wrapper">
     <span class="switch-label">上架:</span>
     <el-switch
-      :model-value="modelValue"
+      v-model="currentValue"
       :active-value="schema.option?.activeValue ?? 1"
       :inactive-value="schema.option?.inactiveValue ?? 0"
       :active-text="schema.option?.activeText"
@@ -14,7 +14,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   schema: {
@@ -34,12 +35,27 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'change'])
 
 const loading = ref(false)
+const currentValue = ref(props.modelValue)
 const initialValue = ref(null)
 const isMounted = ref(false)
+
+// 监听外部值变化，同步到currentValue
+watch(() => props.modelValue, (newVal) => {
+  currentValue.value = newVal
+})
 
 const handleChange = async (value) => {
   // 防止初始化时触发：如果值和初始值相同，说明是初始化触发的
   if (!isMounted.value || value === initialValue.value) {
+    return
+  }
+  
+  // 检查：总库存为0时不能上架
+  const activeValue = props.schema.option?.activeValue ?? 1
+  if (value === activeValue && props.rowData.inventory === 0) {
+    ElMessage.error('总库存为0，不能上架')
+    // 恢复到原来的状态
+    currentValue.value = props.modelValue
     return
   }
   
@@ -60,6 +76,7 @@ const handleChange = async (value) => {
 onMounted(() => {
   // 保存初始值
   initialValue.value = props.modelValue
+  currentValue.value = props.modelValue
   // 立即标记为已挂载（不需要延迟）
   isMounted.value = true
 })

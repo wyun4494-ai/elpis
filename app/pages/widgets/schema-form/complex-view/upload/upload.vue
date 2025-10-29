@@ -37,6 +37,7 @@
         :on-remove="handleRemove"
         :on-preview="handlePreview"
         :before-upload="beforeUpload"
+        drag
       >
         <el-icon><Plus /></el-icon>
       </el-upload>
@@ -91,6 +92,7 @@ const dotValue = ref('')
 const validTips = ref('')
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
+const isMultiple = computed(() => (schema.option?.limit || 1) > 1)
 
 // 上传地址（暂时使用模拟地址，实际需要后端上传接口）
 const uploadUrl = computed(() => {
@@ -112,24 +114,36 @@ const initData = () => {
   // 如果有初始值，转换为文件列表格式
   if (model.value) {
     if (typeof model.value === 'string') {
-      // 单个URL
-      fileList.value = model.value ? [{
-        name: 'image',
-        url: model.value
-      }] : []
-      dotValue.value = model.value
+      // 单个URL或逗号分隔的字符串
+      if (model.value.includes(',')) {
+        const urls = model.value.split(',').filter(url => url.trim())
+        fileList.value = urls.map((url, index) => ({
+          name: `image_${index}`,
+          url: url.trim(),
+          uid: Date.now() + index
+        }))
+        dotValue.value = urls
+      } else {
+        fileList.value = model.value ? [{
+          name: 'image',
+          url: model.value,
+          uid: Date.now()
+        }] : []
+        dotValue.value = model.value
+      }
     } else if (Array.isArray(model.value)) {
-      // 多个URL
+      // 数组格式
       fileList.value = model.value.map((url, index) => ({
         name: `image_${index}`,
-        url: url
+        url: url,
+        uid: Date.now() + index
       }))
-      dotValue.value = model.value[0] || ''
+      dotValue.value = model.value
     }
   } else if (schema.option?.default !== undefined) {
     dotValue.value = schema.option.default
   } else {
-    dotValue.value = ''
+    dotValue.value = isMultiple.value ? [] : ''
     fileList.value = []
   }
 }
@@ -148,11 +162,25 @@ watch([model, schema], () => {
 // 上传成功回调
 const handleSuccess = (response, file, fileListData) => {
   if (response && response.success && response.data) {
-    // 假设后端返回 { success: true, data: 'http://xxx/image.jpg' }
-    dotValue.value = response.data
+    // 后端返回 { success: true, data: { url: 'http://xxx/image.jpg' } }
+    const url = typeof response.data === 'string' ? response.data : response.data.url
+    
+    // 更新文件的url
+    const fileIndex = fileList.value.findIndex(f => f.uid === file.uid)
+    if (fileIndex !== -1) {
+      fileList.value[fileIndex].url = url
+    }
+    
+    // 更新dotValue
+    updateDotValue()
     ElMessage.success('上传成功')
   } else {
     ElMessage.error('上传失败')
+    // 上传失败，移除该文件
+    const fileIndex = fileList.value.findIndex(f => f.uid === file.uid)
+    if (fileIndex !== -1) {
+      fileList.value.splice(fileIndex, 1)
+    }
   }
   validate()
 }
@@ -165,8 +193,18 @@ const handleError = (error) => {
 
 // 移除图片
 const handleRemove = (file, fileListData) => {
-  dotValue.value = ''
-  fileList.value = []
+  updateDotValue()
+}
+
+// 更新dotValue（根据当前fileList）
+const updateDotValue = () => {
+  const urls = fileList.value.map(f => f.url).filter(url => url)
+  
+  if (isMultiple.value) {
+    dotValue.value = urls
+  } else {
+    dotValue.value = urls[0] || ''
+  }
 }
 
 // 预览图片
@@ -184,11 +222,11 @@ const beforeUpload = (file) => {
     return false
   }
   
-  // 检查文件大小（默认500KB）
+  // 检查文件大小（默认500KB，单位KB）
   const maxSize = schema.option?.maxSize || 500
-  const isLtMaxSize = file.size / 1024 < maxSize
-  if (!isLtMaxSize) {
-    ElMessage.error(`图片大小不能超过 ${maxSize}KB!`)
+  const fileSizeKB = file.size / 1024
+  if (fileSizeKB > maxSize) {
+    ElMessage.error(`图片大小不能超过 ${maxSize >= 1024 ? (maxSize/1024).toFixed(0) + 'MB' : maxSize + 'KB'}!`)
     return false
   }
   
@@ -197,8 +235,13 @@ const beforeUpload = (file) => {
 
 // 获取表单值
 const getValue = () => {
-  return dotValue.value ? {
-    [schemaKey]: dotValue.value
+  if (!dotValue.value) return {}
+  
+  // 多图模式返回数组，单图模式返回字符串
+  const value = isMultiple.value ? dotValue.value : dotValue.value
+  
+  return value ? {
+    [schemaKey]: value
   } : {}
 }
 
@@ -206,9 +249,18 @@ const getValue = () => {
 const validate = () => {
   validTips.value = ''
   
-  if (schema.option?.required && !dotValue.value) {
-    validTips.value = '请上传图片'
-    return false
+  if (schema.option?.required) {
+    if (isMultiple.value) {
+      if (!dotValue.value || dotValue.value.length === 0) {
+        validTips.value = '请上传图片'
+        return false
+      }
+    } else {
+      if (!dotValue.value) {
+        validTips.value = '请上传图片'
+        return false
+      }
+    }
   }
   
   return true
