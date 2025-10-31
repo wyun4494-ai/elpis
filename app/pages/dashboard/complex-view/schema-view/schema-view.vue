@@ -13,7 +13,7 @@
     />
     <component
       :is="ComponentConfig[key]?.component"
-      v-for="(component, key) in components"
+      v-for="(componentItem, key) in components"
       :key="key"
       ref="comListRef"
       @command="handleComCommand"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, provide, computed } from 'vue';
+import { ref, provide, computed, } from 'vue';
 import SearchPanel from './complex-view/search-panel/search-panel.vue'
 import TablePanel from './complex-view/table-panel/table-panel.vue'
 import ComponentConfig from './components/component-config';
@@ -42,6 +42,7 @@ const {
 const loading = computed(() => {
   return !tableSchema.value || Object.keys(tableSchema.value).length === 0
 })
+
 // 跨层级传递数据
 provide('schemaViewData', {
   api,

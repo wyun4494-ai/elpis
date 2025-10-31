@@ -45,7 +45,8 @@ const componentConfig = {
   }
 }
 
-export default {
+const finalConfig = {
   ...componentConfig,
   ...BusinessComponentConfig
 }
+export default finalConfig
