@@ -64,6 +64,20 @@
   </div>
 </template>
 
+/**
+ * Schema 表格组件
+ * 根据 tableSchema 配置自动渲染表格，支持分页、排序、筛选、操作列等功能
+ *
+ * 核心功能：
+ * - 自动解析 tableSchema 生成表格列
+ * - 支持自定义列组件（switch/image/priceItemNumber/textFormat）
+ * - 支持分页和排序
+ * - 支持操作列（编辑/删除/自定义按钮）
+ * - 支持列内编辑（如 switch 组件快速切换状态）
+ * - 自动调用 API 获取数据
+ *
+ * @component SchemaTable
+ */
 <script setup>
 import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
 import $curl from '$elpisCommon/curl'
@@ -71,53 +85,82 @@ import TableItemConfig from './table-item-config'
 
 const props =  defineProps({
   /**
-   * schema 配置, 结构如下
+   * 表格 Schema 配置
+   * @type {Object}
+   * @required
+   * @example
    * {
-  *     type: 'object',
-        properties: {   
-          key: { 
-            ...schema, // 标准 schema 配置
-            type: '', // 字段类型
-            label: '', // 字段名称
-            option: { 
-              ...elTableColumnConfig, // 标准 el-table-column 配置
-              visible: true // 是否在 表单 中显示
-            }
-          },
-          ...}
+   *   type: 'object',
+   *   properties: {
+   *     product_name: {
+   *       type: 'string',
+   *       label: '商品名称',
+   *       option: {
+   *         width: 200,
+   *         visible: true,
+   *         comType: 'textFormat' // 可选：自定义列组件类型
+   *       }
+   *     },
+   *     status: {
+   *       type: 'number',
+   *       label: '上架状态',
+   *       option: {
+   *         comType: 'switch', // switch 组件支持快速切换
+   *         activeValue: 1,
+   *         inactiveValue: 0
+   *       }
+   *     }
+   *   }
    * }
    */
   schema: {
     type: Object,
-    default: () => ({}) // 为Object类型设置默认值
+    default: () => ({})
   },
 
   /**
-   * 表格数据源 api
+   * 表格数据源 API 路径
+   * @type {string}
+   * @required
+   * @example '/api/proj/product'
    */
   api: {
     type: String,
-    default: '' // 为String类型设置默认值
+    default: ''
   },
+
   /**
-   * 表格数据源 api 参数
+   * 表格数据源 API 参数
+   * @type {Object}
+   * @example { category_id: 'CAT001', status: 1 }
    */
   apiParams: {
     type: Object,
     default: () => ({})
   },
+
   /**
-   * buttons 按钮配置, 结构如下
-   * [{
-   *    label: '', // 按钮名称
-        eventKey: '', // 按钮事件名
-        eventOptions: {}, // 按钮配置
-        ...elButton, // 标准 el-button 配置
-   * }, ...]
+   * 操作列按钮配置
+   * @type {Array}
+   * @example
+   * [
+   *   {
+   *     label: '编辑',
+   *     eventKey: 'edit',
+   *     type: 'primary',
+   *     link: true
+   *   },
+   *   {
+   *     label: '删除',
+   *     eventKey: 'delete',
+   *     type: 'danger',
+   *     link: true
+   *   }
+   * ]
    */
   buttons: {
     type: Array,
-    default: () => [] // 为Array类型设置默认值
+    default: () => []
   }
 })
 
@@ -125,7 +168,11 @@ const { schema, buttons, api, apiParams } = toRefs(props);
 
 const emit = defineEmits(['operate']);
 
-// 计算按钮宽度
+/**
+ * 计算操作列宽度
+ * 根据按钮数量和文字长度自动计算操作列宽度
+ * @returns {number} 操作列宽度（px）
+ */
 const operationWidth = computed( () => {
   return buttons?.value?.length > 0 ? buttons?.value.reduce(( pre, cur) => {
     return pre + cur.label.length * 18
@@ -139,16 +186,25 @@ const currentPage = ref(1); // 当前页码
 const pageSize = ref(50); // 每页条数
 const total = ref(0); // 数据总数
 
+/**
+ * 组件挂载时初始化数据
+ */
 onMounted(() => {
   initData();
 });
 
-watch([api, schema, apiParams], () => { 
+/**
+ * 监听 API、Schema、API 参数变化，自动重新加载数据
+ */
+watch([api, schema, apiParams], () => {
   initData();
-}, { deep: true}) 
+}, { deep: true})
 
-// 初始化数据
-const initData = () => { 
+/**
+ * 初始化数据
+ * 重置分页参数并加载表格数据
+ */
+const initData = () => {
   currentPage.value = 1;
   pageSize.value = 50;
   nextTick( async () => {
@@ -156,23 +212,29 @@ const initData = () => {
   });
 }
 
-// 防抖加载表格数据
+/**
+ * 防抖加载表格数据
+ * 防止频繁调用 API，300ms 内只执行最后一次请求
+ */
 let timer = null;
-const loadTableData = () => { 
+const loadTableData = () => {
   clearTimeout(timer);
-  timer = setTimeout(() => { 
+  timer = setTimeout(() => {
     fetchTableData();
     timer = null;
   }, 300);
 }
 
-// 获取表格数据
-const fetchTableData = async () => { 
+/**
+ * 获取表格数据
+ * 调用 API 获取数据并更新表格
+ */
+const fetchTableData = async () => {
   if (!api.value) return;
-  
+
   showLoading();
 
-  // 获取数据
+  // 调用 API 获取数据
   const res = await $curl({
     method: 'get',
     url: `${api.value}/list`,
@@ -196,7 +258,12 @@ const fetchTableData = async () => {
 
 /**
  * 处理后端返回的数据，根据 schema 配置进行数据预处理
- * @param listData 列表数据
+ *
+ * 预处理规则：
+ * - 如果 schema 配置了 toFixed，自动格式化数字精度
+ *
+ * @param {Array} listData - 列表数据
+ * @returns {Array} 处理后的列表数据
  */
 const buildTableData = (listData) => {
   if (!schema?.value.properties) return listData;
@@ -204,8 +271,8 @@ const buildTableData = (listData) => {
   return listData.map(rowData => {
     for (const dKey in rowData) {
       const schemaItem = schema.value.properties[dKey];
-      
-      // 处理toFixed
+
+      // 处理 toFixed（数字精度格式化）
       if (schemaItem?.option?.toFixed) {
         rowData[dKey] = rowData[dKey].toFixed(schemaItem.option.toFixed);
       }
@@ -214,57 +281,96 @@ const buildTableData = (listData) => {
   })
 }
 
-const showLoading = () => { 
+/**
+ * 显示加载状态
+ */
+const showLoading = () => {
   loading.value = true;
 }
 
-const hideLoading = () => { 
+/**
+ * 隐藏加载状态
+ */
+const hideLoading = () => {
   loading.value = false;
 }
 
-// 按钮点击处理
+/**
+ * 按钮点击处理
+ * 触发 operate 事件，传递按钮配置和行数据
+ *
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Object} params.rowData - 行数据
+ */
 const operationHandler = ( { btnConfig, rowData }) => {
   emit('operate', { btnConfig, rowData });
 }
 
-// 处理每页显示条目数
+/**
+ * 处理每页显示条目数变化
+ * @param {number} value - 新的每页条目数
+ */
 const onPageSizeChange = async (value) => {
   pageSize.value = value
   await loadTableData();
 }
 
-// 处理当前页码的改变
+/**
+ * 处理当前页码变化
+ * @param {number} value - 新的页码
+ */
 const onCurrentPageChange = async (value) => {
   currentPage.value = value
   await loadTableData();
 }
 
-// 获取表格列组件
+/**
+ * 获取表格列组件
+ * 根据 comType 从 TableItemConfig 中获取对应的组件
+ *
+ * @param {string} comType - 组件类型（switch/image/priceItemNumber/textFormat）
+ * @returns {Component|string} 组件或默认的 span 标签
+ */
 const getColumnComponent = (comType) => {
   return TableItemConfig[comType]?.component || 'span'
 }
 
-// 处理列值变化
+/**
+ * 处理列值变化（列内编辑）
+ * 当用户在表格列中修改值时（如 switch 组件切换状态），自动调用 API 更新数据
+ *
+ * 业务流程：
+ * 1. 获取主键字段名（从 schema 中查找）
+ * 2. 构建更新数据（主键 + 修改的字段）
+ * 3. 调用 PUT API 更新数据
+ * 4. 更新成功：更新本地数据
+ * 5. 更新失败：刷新表格恢复数据
+ *
+ * @param {string} key - 字段名
+ * @param {any} value - 新值
+ * @param {Object} rowData - 行数据
+ */
 const handleColumnChange = async (key, value, rowData) => {
-  // 获取主键字段名（从 schema 中查找第一个有 tableOption 的字段作为主键）
-  const primaryKey = Object.keys(schema.value.properties).find(k => 
+  // 1. 获取主键字段名（从 schema 中查找第一个有 tableOption 的字段作为主键）
+  const primaryKey = Object.keys(schema.value.properties).find(k =>
     schema.value.properties[k].tableOption
   ) || 'product_id';
-  
-  // 检查 rowData 是否有主键
+
+  // 2. 检查 rowData 是否有主键
   if (!rowData || !rowData[primaryKey]) {
     console.error('Row data is missing primary key:', primaryKey, rowData);
     return;
   }
 
   try {
-    // 构建请求数据
+    // 3. 构建请求数据
     const updateData = {
       [primaryKey]: rowData[primaryKey],
       [key]: value
     };
 
-    // 调用更新API
+    // 4. 调用更新 API
     const res = await $curl({
       method: 'put',
       url: api.value,
@@ -274,13 +380,13 @@ const handleColumnChange = async (key, value, rowData) => {
     })
 
     if (res && res.success) {
-      // 更新本地数据
+      // 5. 更新成功：更新本地数据
       const rowIndex = tableData.value.findIndex(row => row[primaryKey] === rowData[primaryKey])
       if (rowIndex !== -1) {
         tableData.value[rowIndex][key] = value
       }
     } else {
-      // 更新失败，刷新表格恢复数据
+      // 更新失败：刷新表格恢复数据
       await loadTableData()
     }
   } catch (error) {
@@ -290,6 +396,13 @@ const handleColumnChange = async (key, value, rowData) => {
   }
 }
 
+/**
+ * 暴露给父组件的方法
+ * - initData: 初始化数据
+ * - loadTableData: 加载表格数据
+ * - hideLoading: 隐藏加载状态
+ * - showLoading: 显示加载状态
+ */
 defineExpose({
   initData,
   loadTableData,

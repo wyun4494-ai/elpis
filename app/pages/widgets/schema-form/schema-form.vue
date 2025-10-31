@@ -18,46 +18,78 @@
   </div>
 </template>
 
+/**
+ * Schema 表单组件
+ * 根据 formSchema 配置自动渲染表单，支持多种表单控件类型和校验规则
+ *
+ * 核心功能：
+ * - 自动解析 formSchema 生成表单项
+ * - 支持多种表单控件（input/select/cascader/remote-select/upload/tag-input/attribute-config/param-selector）
+ * - 支持表单校验（必填、格式校验）
+ * - 支持表单数据回显（编辑模式）
+ * - 提供 getValue() 和 validate() 方法供父组件调用
+ *
+ * @component SchemaForm
+ */
 <script setup>
 import { toRefs, ref, provide } from 'vue';
 import FormItemConfig from './form-item-config';
 
+// 提供 ajv 校验器给子组件使用
 const Ajv = require('ajv')
 const ajv = new Ajv()
 provide('ajv', ajv)
+
 const props = defineProps({
   /**
-   * schema 配置, 结构如下
+   * 表单 Schema 配置
+   * @type {Object}
+   * @required
+   * @example
    * {
-        type: 'object',
-        properties: { // 板块属性
-          key: {
-            // 标准 schema 配置（占位）
-            type: '', // 字段类型
-            label: '', // 字段名称
-            option: { 
-              // 标准 el-component-column 配置（占位）
-              comType: '', // 控件类型 input/select....
-              visible: true, // 是否在 表单 中显示 默认true
-              disabled: false, // 是否禁用
-              required: false, // 是否必填
-              default: '', // 默认值
-
-              // 当 comType 为 select时
-              enumList: [], // 下拉框可选值
-
-            },
-          },
-          // ... 用户可扩展
-        },
-      }
+   *   type: 'object',
+   *   properties: {
+   *     product_name: {
+   *       type: 'string',
+   *       label: '商品名称',
+   *       option: {
+   *         comType: 'input',
+   *         visible: true,
+   *         disabled: false,
+   *         required: true,
+   *         placeholder: '请输入商品名称'
+   *       }
+   *     },
+   *     category_id: {
+   *       type: 'string',
+   *       label: '商品分类',
+   *       option: {
+   *         comType: 'cascader',
+   *         required: true,
+   *         api: '/api/proj/category/tree'
+   *       }
+   *     },
+   *     brand_id: {
+   *       type: 'string',
+   *       label: '品牌',
+   *       option: {
+   *         comType: 'remote-select',
+   *         required: true,
+   *         api: '/api/proj/brand/search'
+   *       }
+   *     }
+   *   }
+   * }
    */
   schema: {
     type: Object,
     default: () => ({})
   },
+
   /**
-   * 表单数据
+   * 表单数据（用于数据回显）
+   * @type {Object}
+   * @example { product_name: 'iPhone 15', category_id: 'CAT001', brand_id: 'BRAND001' }
    */
   model: {
     type: Object,
@@ -68,7 +100,13 @@ const props = defineProps({
 const { schema } = toRefs(props)
 
 const formComList = ref([])
-// 获取表单值
+
+/**
+ * 获取表单值
+ * 遍历所有表单项组件，收集表单数据
+ *
+ * @returns {Object} 表单数据对象
+ */
 const getValue = () => {
   return formComList.value.reduce((dtoObj, component) => {
     return dtoObj = {
@@ -77,17 +115,28 @@ const getValue = () => {
     }
   }, {})
 }
-// 表单校验
-const validate = () => {  
+
+/**
+ * 表单校验
+ * 遍历所有表单项组件，执行校验规则
+ *
+ * @returns {boolean} 校验是否通过（true=通过，false=不通过）
+ */
+const validate = () => {
   return formComList.value.every(item => {
     return item.validate()
   })
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getValue: 获取表单值
+ * - validate: 表单校验
+ */
 defineExpose({
   getValue,
   validate
-})  
+})
 </script>
 
 <style lang="less">

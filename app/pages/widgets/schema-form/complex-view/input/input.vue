@@ -41,23 +41,72 @@
   </el-row>
 </template>
 
+/**
+ * 文本输入组件
+ * 基础表单控件，支持文本输入和校验
+ *
+ * 核心功能：
+ * - 支持文本输入
+ * - 支持必填校验
+ * - 支持长度校验（minLength/maxLength）
+ * - 支持格式校验（pattern 正则）
+ * - 支持类型校验（使用 ajv）
+ * - 自动生成 placeholder（显示校验规则）
+ *
+ * 使用场景：
+ * - 商品名称输入
+ * - 品牌名称输入
+ * - 分类名称输入
+ * - 其他文本输入场景
+ *
+ * @component Input
+ */
 <script setup>
 import { ref, toRefs, watch, onMounted, inject} from 'vue'
 const ajv = inject('ajv')
+
 const props = defineProps({
+  /**
+   * Schema 配置
+   * @type {Object}
+   * @required
+   * @example
+   * {
+   *   type: 'string',
+   *   label: '商品名称',
+   *   minLength: 2,
+   *   maxLength: 100,
+   *   pattern: '^[a-zA-Z0-9\u4e00-\u9fa5]+$',
+   *   option: {
+   *     placeholder: '请输入商品名称',
+   *     required: true
+   *   }
+   * }
+   */
   schema: {
     type: Object,
     default: () => ({})
   },
+
+  /**
+   * Schema 键名
+   * @type {string}
+   */
   schemaKey: {
     type: String,
     default: ''
   },
+
+  /**
+   * 输入值（用于数据回显）
+   * @type {string|number|boolean|Object}
+   */
   model: {
     type: [String, Number, Boolean, Object],
     default: undefined
   },
 })
+
 const { schema, schemaKey} = props
 const { model } = toRefs(props)
 
@@ -66,8 +115,14 @@ const dotValue = ref()
 const validTips = ref(null)
 const placeholder = ref('')
 
-// 初始化数据
-const initData = () => { 
+/**
+ * 初始化数据
+ *
+ * 处理流程：
+ * 1. 从 model 或 schema.option.default 加载初始值
+ * 2. 根据 schema 配置生成 placeholder（显示校验规则）
+ */
+const initData = () => {
   // 如果有model值，使用model值，否则使用schema中定义的默认值
   dotValue.value = model.value !== undefined ? model.value : schema.option?.default
   validTips.value = null
@@ -91,25 +146,44 @@ const initData = () => {
   placeholder.value = ruleList.join('|')
 }
 
-
-onMounted(() => { 
+/**
+ * 组件挂载时初始化数据
+ */
+onMounted(() => {
   initData()
 })
-watch([model, schema], () => { 
+
+/**
+ * 监听 model 和 schema 变化，重新初始化数据
+ */
+watch([model, schema], () => {
   initData()
 },{
   deep: true,
   immediate: true
 })
 
-// 获取表单值
+/**
+ * 获取表单值
+ * @returns {Object} 表单值对象
+ */
 const getValue = () => {
   return dotValue.value !== null ? {
     [schemaKey]: dotValue.value
   } : {}
 }
 
-// 表单校验
+/**
+ * 表单校验
+ *
+ * 校验规则：
+ * 1. 必填校验（required）
+ * 2. 类型校验（type）
+ * 3. 长度校验（minLength/maxLength）
+ * 4. 格式校验（pattern 正则）
+ *
+ * @returns {boolean} 校验结果
+ */
 const validate = () => {
   validTips.value = null
 
@@ -138,21 +212,34 @@ const validate = () => {
         console.log(validate.errors[0])
         validTips.value = '格式错误，请检查输入'
       }
-      return false 
+      return false
     }
   }
   return true
 }
 
-// 输入框聚焦事件
-const onFocus = () => { 
+/**
+ * 输入框聚焦事件处理
+ * 清空校验提示
+ */
+const onFocus = () => {
   validTips.value = null
 }
-// 输入框失焦事件
-const onBlur = () => { 
+
+/**
+ * 输入框失焦事件处理
+ * 触发校验
+ */
+const onBlur = () => {
   validate()
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getValue: 获取输入值
+ * - validate: 校验输入值
+ * - name: 组件名称
+ */
 defineExpose({
   getValue,
   validate,

@@ -45,52 +45,100 @@
 </template>
 
 <script>
+/**
+ * 库存分配状态组件
+ *
+ * 功能说明：
+ * - 显示总库存上限和已分配库存的对比
+ * - 实时计算剩余库存
+ * - 当 SKU 库存总和超出总库存上限时显示警告
+ * - 使用进度条可视化库存分配情况
+ *
+ * @component InventoryStats
+ * @example
+ * <inventory-stats :total-inventory="1000" :skus="skuList" />
+ */
 import { computed } from 'vue'
 
 export default {
   name: 'InventoryStats',
   props: {
+    /**
+     * 总库存上限
+     * @type {Number}
+     */
     totalInventory: {
       type: Number,
       default: 0
     },
+    /**
+     * SKU 列表（包含每个 SKU 的库存信息）
+     * @type {Array<Object>}
+     */
     skus: {
       type: Array,
       default: () => []
     }
   },
   setup(props) {
-    // 计算已分配库存
+    /**
+     * 计算已分配库存
+     * 算法说明：遍历所有 SKU，累加每个 SKU 的库存数量
+     *
+     * @returns {number} 已分配库存总和
+     */
     const allocatedInventory = computed(() => {
       return props.skus.reduce((sum, sku) => {
         return sum + (parseInt(sku.inventory) || 0)
       }, 0)
     })
-    
-    // 计算剩余库存
+
+    /**
+     * 计算剩余库存
+     * 算法说明：总库存上限 - 已分配库存
+     *
+     * @returns {number} 剩余库存（可能为负数，表示超出限制）
+     */
     const remainingInventory = computed(() => {
       return (props.totalInventory || 0) - allocatedInventory.value
     })
-    
-    // 是否超出限制
+
+    /**
+     * 判断是否超出限制
+     *
+     * @returns {boolean} true-超出限制，false-未超出
+     */
     const isOverLimit = computed(() => {
       return allocatedInventory.value > (props.totalInventory || 0)
     })
-    
-    // 进度百分比
+
+    /**
+     * 计算进度百分比
+     * 算法说明：(已分配库存 / 总库存上限) × 100，最大值为 100
+     *
+     * @returns {number} 进度百分比（0-100）
+     */
     const percentage = computed(() => {
       if (!props.totalInventory) return 0
       const percent = (allocatedInventory.value / props.totalInventory) * 100
       return Math.min(Math.round(percent), 100)
     })
-    
-    // 进度条状态
+
+    /**
+     * 计算进度条状态
+     * 状态规则：
+     * - exception（异常）：已超出限制
+     * - warning（警告）：使用率 ≥ 90%
+     * - success（正常）：使用率 < 90%
+     *
+     * @returns {string} 进度条状态（'exception' | 'warning' | 'success'）
+     */
     const progressStatus = computed(() => {
       if (isOverLimit.value) return 'exception'
       if (percentage.value >= 90) return 'warning'
       return 'success'
     })
-    
+
     return {
       allocatedInventory,
       remainingInventory,

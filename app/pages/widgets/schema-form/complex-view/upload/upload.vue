@@ -63,20 +63,70 @@
   </el-row>
 </template>
 
+/**
+ * 图片上传组件
+ * 支持单图/多图上传，支持图片预览和删除
+ *
+ * 核心功能：
+ * - 支持单图/多图上传（通过 limit 配置）
+ * - 支持拖拽上传
+ * - 支持图片预览（点击放大）
+ * - 支持文件类型和大小校验
+ * - 支持数据回显（编辑模式）
+ * - 支持必填校验
+ *
+ * 使用场景：
+ * - 品牌 Logo 上传
+ * - 商品主图上传
+ * - 商品详情图上传（多图）
+ * - SKU 图片上传
+ *
+ * @component Upload
+ */
 <script setup>
 import { ref, toRefs, watch, onMounted, computed } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
+  /**
+   * Schema 配置
+   * @type {Object}
+   * @required
+   * @example
+   * {
+   *   label: '品牌Logo',
+   *   option: {
+   *     uploadUrl: '/api/upload/brand-logo',
+   *     accept: 'image/*',
+   *     limit: 1,
+   *     maxSize: 500,
+   *     required: true
+   *   }
+   * }
+   */
   schema: {
     type: Object,
     default: () => ({})
   },
+
+  /**
+   * Schema 键名
+   * @type {string}
+   */
   schemaKey: {
     type: String,
     default: ''
   },
+
+  /**
+   * 图片 URL（用于数据回显）
+   * @type {string|Array|Object}
+   * @example
+   * 单图：'http://xxx/image.jpg'
+   * 多图：['http://xxx/image1.jpg', 'http://xxx/image2.jpg']
+   * 逗号分隔：'http://xxx/image1.jpg,http://xxx/image2.jpg'
+   */
   model: {
     type: [String, Array, Object],
     default: undefined
@@ -92,14 +142,25 @@ const dotValue = ref('')
 const validTips = ref('')
 const dialogVisible = ref(false)
 const dialogImageUrl = ref('')
+
+/**
+ * 是否为多图模式
+ * @type {ComputedRef<boolean>}
+ */
 const isMultiple = computed(() => (schema.option?.limit || 1) > 1)
 
-// 上传地址（暂时使用模拟地址，实际需要后端上传接口）
+/**
+ * 上传地址
+ * @type {ComputedRef<string>}
+ */
 const uploadUrl = computed(() => {
   return schema.option?.uploadUrl || '/api/upload/image'
 })
 
-// 上传请求头
+/**
+ * 上传请求头
+ * @type {ComputedRef<Object>}
+ */
 const uploadHeaders = computed(() => {
   return {
     'proj_key': localStorage.getItem('proj_key') || '',
@@ -107,10 +168,18 @@ const uploadHeaders = computed(() => {
   }
 })
 
-// 初始化数据
+/**
+ * 初始化数据
+ * 从 model 中加载图片 URL，转换为文件列表格式用于回显
+ *
+ * 支持的数据格式：
+ * - 单个 URL 字符串：'http://xxx/image.jpg'
+ * - 逗号分隔字符串：'http://xxx/image1.jpg,http://xxx/image2.jpg'
+ * - URL 数组：['http://xxx/image1.jpg', 'http://xxx/image2.jpg']
+ */
 const initData = () => {
   validTips.value = ''
-  
+
   // 如果有初始值，转换为文件列表格式
   if (model.value) {
     if (typeof model.value === 'string') {
@@ -148,10 +217,16 @@ const initData = () => {
   }
 }
 
+/**
+ * 组件挂载时初始化数据
+ */
 onMounted(() => {
   initData()
 })
 
+/**
+ * 监听 model 和 schema 变化，重新初始化数据
+ */
 watch([model, schema], () => {
   initData()
 }, {
@@ -159,18 +234,30 @@ watch([model, schema], () => {
   immediate: false
 })
 
-// 上传成功回调
+/**
+ * 上传成功回调
+ *
+ * 处理流程：
+ * 1. 从后端响应中提取图片 URL
+ * 2. 更新文件列表中的 URL
+ * 3. 更新表单值
+ * 4. 触发校验
+ *
+ * @param {Object} response - 后端响应 { success: true, data: { url: 'http://xxx/image.jpg' } }
+ * @param {Object} file - 上传的文件对象
+ * @param {Array} fileListData - 文件列表
+ */
 const handleSuccess = (response, file, fileListData) => {
   if (response && response.success && response.data) {
     // 后端返回 { success: true, data: { url: 'http://xxx/image.jpg' } }
     const url = typeof response.data === 'string' ? response.data : response.data.url
-    
+
     // 更新文件的url
     const fileIndex = fileList.value.findIndex(f => f.uid === file.uid)
     if (fileIndex !== -1) {
       fileList.value[fileIndex].url = url
     }
-    
+
     // 更新dotValue
     updateDotValue()
     ElMessage.success('上传成功')
@@ -185,21 +272,31 @@ const handleSuccess = (response, file, fileListData) => {
   validate()
 }
 
-// 上传失败回调
+/**
+ * 上传失败回调
+ * @param {Error} error - 错误对象
+ */
 const handleError = (error) => {
   console.error('Upload error:', error)
   ElMessage.error('上传失败，请重试')
 }
 
-// 移除图片
+/**
+ * 移除图片回调
+ * @param {Object} file - 被移除的文件对象
+ * @param {Array} fileListData - 文件列表
+ */
 const handleRemove = (file, fileListData) => {
   updateDotValue()
 }
 
-// 更新dotValue（根据当前fileList）
+/**
+ * 更新表单值（根据当前文件列表）
+ * 单图模式返回字符串，多图模式返回数组
+ */
 const updateDotValue = () => {
   const urls = fileList.value.map(f => f.url).filter(url => url)
-  
+
   if (isMultiple.value) {
     dotValue.value = urls
   } else {
@@ -207,13 +304,27 @@ const updateDotValue = () => {
   }
 }
 
-// 预览图片
+/**
+ * 预览图片
+ * 点击图片时放大显示
+ *
+ * @param {Object} file - 文件对象
+ */
 const handlePreview = (file) => {
   dialogImageUrl.value = file.url
   dialogVisible.value = true
 }
 
-// 上传前校验
+/**
+ * 上传前校验
+ *
+ * 校验规则：
+ * 1. 文件类型必须为图片
+ * 2. 文件大小不能超过限制（默认 500KB）
+ *
+ * @param {File} file - 待上传的文件
+ * @returns {boolean} 校验结果
+ */
 const beforeUpload = (file) => {
   // 检查文件类型
   const isImage = file.type.startsWith('image/')
@@ -221,7 +332,7 @@ const beforeUpload = (file) => {
     ElMessage.error('只能上传图片文件!')
     return false
   }
-  
+
   // 检查文件大小（默认500KB，单位KB）
   const maxSize = schema.option?.maxSize || 500
   const fileSizeKB = file.size / 1024
@@ -229,26 +340,36 @@ const beforeUpload = (file) => {
     ElMessage.error(`图片大小不能超过 ${maxSize >= 1024 ? (maxSize/1024).toFixed(0) + 'MB' : maxSize + 'KB'}!`)
     return false
   }
-  
+
   return true
 }
 
-// 获取表单值
+/**
+ * 获取表单值
+ * 单图模式返回字符串，多图模式返回数组
+ *
+ * @returns {Object} 表单值对象
+ */
 const getValue = () => {
   if (!dotValue.value) return {}
-  
+
   // 多图模式返回数组，单图模式返回字符串
   const value = isMultiple.value ? dotValue.value : dotValue.value
-  
+
   return value ? {
     [schemaKey]: value
   } : {}
 }
 
-// 表单校验
+/**
+ * 表单校验
+ * 如果必填，检查是否已上传图片
+ *
+ * @returns {boolean} 校验结果
+ */
 const validate = () => {
   validTips.value = ''
-  
+
   if (schema.option?.required) {
     if (isMultiple.value) {
       if (!dotValue.value || dotValue.value.length === 0) {
@@ -262,10 +383,16 @@ const validate = () => {
       }
     }
   }
-  
+
   return true
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getValue: 获取图片 URL
+ * - validate: 校验图片
+ * - name: 组件名称
+ */
 defineExpose({
   getValue,
   validate,

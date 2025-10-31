@@ -52,12 +52,39 @@
     </el-main>
   </el-container>
 </template>
+/**
+ * 顶栏容器组件
+ * Dashboard 布局的顶栏容器，包含 Logo、标题、菜单、设置区域
+ *
+ * 核心功能：
+ * - 显示 Logo 和标题
+ * - 提供菜单插槽（menu-content）
+ * - 提供设置区域插槽（setting-content）
+ * - 集成主题切换器
+ * - 集成用户面板
+ * - 提供主内容区域插槽（main-content）
+ *
+ * 插槽说明：
+ * - menu-content: 中间菜单区域
+ * - setting-content: 右上方设置区域
+ * - main-content: 主内容区域
+ *
+ * 使用场景：
+ * - Dashboard 布局的顶栏
+ *
+ * @component HeaderContainer
+ */
 <script setup>
 // import { ref } from 'vue'
 import businessHeaderConfig from '$businessHeaderConfig'
 import ThemeSwitcher from './complex-view/theme-switcher/theme-switcher.vue'
 
 defineProps({
+  /**
+   * 标题文本
+   * @type {string}
+   * @example 'Elpis 管理系统'
+   */
   title: {
     type: String,
     default: ''

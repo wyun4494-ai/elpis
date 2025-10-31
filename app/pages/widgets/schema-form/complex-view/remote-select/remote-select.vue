@@ -55,19 +55,63 @@
   </el-row>
 </template>
 
+/**
+ * 远程搜索下拉组件
+ * 支持远程搜索的下拉选择框，用于大数据量的选择场景
+ *
+ * 核心功能：
+ * - 支持远程搜索（输入关键字调用 API 搜索）
+ * - 支持数据回显（编辑模式下加载初始选项）
+ * - 支持自定义 labelKey 和 valueKey
+ * - 支持必填校验
+ *
+ * 使用场景：
+ * - 品牌选择（从大量品牌中搜索）
+ * - 分类选择（从大量分类中搜索）
+ * - 商品选择（从大量商品中搜索）
+ *
+ * @component RemoteSelect
+ */
 <script setup>
 import { ref, toRefs, watch, onMounted } from 'vue'
 import $curl from '$elpisCommon/curl.js'
 
 const props = defineProps({
+  /**
+   * Schema 配置
+   * @type {Object}
+   * @required
+   * @example
+   * {
+   *   label: '品牌',
+   *   option: {
+   *     api: '/api/proj/brand/search',
+   *     detailApi: '/api/proj/brand/:id',
+   *     labelKey: 'brand_name',
+   *     valueKey: 'brand_id',
+   *     placeholder: '请输入品牌名称搜索',
+   *     required: true
+   *   }
+   * }
+   */
   schema: {
     type: Object,
     default: () => ({})
   },
+
+  /**
+   * Schema 键名
+   * @type {string}
+   */
   schemaKey: {
     type: String,
     default: ''
   },
+
+  /**
+   * 表单值（用于数据回显）
+   * @type {string|number|boolean|Object}
+   */
   model: {
     type: [String, Number, Boolean, Object],
     default: undefined
@@ -84,22 +128,30 @@ const loading = ref(false)
 const validTips = ref('')
 const placeholder = ref('请输入关键字搜索')
 
-// 初始化数据
+/**
+ * 初始化数据
+ * 从 model 中加载初始值，用于数据回显
+ */
 const initData = () => {
   dotValue.value = model.value !== undefined ? model.value : schema.option?.default
   validTips.value = ''
   placeholder.value = schema.option?.placeholder || '请输入关键字搜索'
-  
+
   // 如果有初始值，加载对应的选项
   if (dotValue.value) {
     loadInitialOption(dotValue.value)
   }
 }
 
-// 加载初始选项（用于回显）
+/**
+ * 加载初始选项（用于回显）
+ * 编辑模式下，根据初始值调用详情 API 获取选项数据
+ *
+ * @param {string|number} value - 初始值
+ */
 const loadInitialOption = async (value) => {
   if (!value) return
-  
+
   try {
     const res = await $curl({
       method: 'get',
@@ -108,11 +160,11 @@ const loadInitialOption = async (value) => {
         [schema.option?.valueKey || 'id']: value
       }
     })
-    
+
     if (res && res.success && res.data) {
       const labelKey = schema.option?.labelKey || 'name'
       const valueKey = schema.option?.valueKey || 'id'
-      
+
       options.value = [{
         label: res.data[labelKey],
         value: res.data[valueKey]
@@ -123,16 +175,22 @@ const loadInitialOption = async (value) => {
   }
 }
 
-// 远程搜索
+/**
+ * 远程搜索
+ * 根据用户输入的关键字调用 API 搜索数据
+ *
+ * @param {string} query - 搜索关键字
+ */
 const remoteSearch = async (query) => {
   if (!query) {
     options.value = []
     return
   }
-  
+
   loading.value = true
-  
+
   try {
+    // 调用搜索 API
     const res = await $curl({
       method: 'get',
       url: schema.option?.api,
@@ -142,13 +200,14 @@ const remoteSearch = async (query) => {
         pageSize: 50
       }
     })
-    
+
     loading.value = false
-    
+
     if (res && res.success && Array.isArray(res.data)) {
       const labelKey = schema.option?.labelKey || 'name'
       const valueKey = schema.option?.valueKey || 'id'
-      
+
+      // 转换为下拉选项格式
       options.value = res.data.map(item => ({
         label: item[labelKey],
         value: item[valueKey],
@@ -164,10 +223,16 @@ const remoteSearch = async (query) => {
   }
 }
 
+/**
+ * 组件挂载时初始化数据
+ */
 onMounted(() => {
   initData()
 })
 
+/**
+ * 监听 model 和 schema 变化，重新初始化数据
+ */
 watch([model, schema], () => {
   initData()
 }, {
@@ -175,40 +240,61 @@ watch([model, schema], () => {
   immediate: false
 })
 
-// 获取表单值
+/**
+ * 获取表单值
+ * @returns {Object} 表单值对象
+ */
 const getValue = () => {
   return dotValue.value !== null && dotValue.value !== undefined ? {
     [schemaKey]: dotValue.value
   } : {}
 }
 
-// 表单校验
+/**
+ * 表单校验
+ * @returns {boolean} 校验结果
+ */
 const validate = () => {
   validTips.value = ''
-  
+
   if (schema.option?.required && !dotValue.value) {
     validTips.value = '请选择'
     return false
   }
-  
+
   return true
 }
 
-// 值变化事件
+/**
+ * 值变化事件处理
+ * 触发校验
+ */
 const onChange = () => {
   validate()
 }
 
-// 输入框聚焦事件
+/**
+ * 输入框聚焦事件处理
+ * 清空校验提示
+ */
 const onFocus = () => {
   validTips.value = ''
 }
 
-// 输入框失焦事件
+/**
+ * 输入框失焦事件处理
+ * 触发校验
+ */
 const onBlur = () => {
   validate()
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getValue: 获取表单值
+ * - validate: 校验表单
+ * - name: 组件名称
+ */
 defineExpose({
   getValue,
   validate,

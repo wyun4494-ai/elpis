@@ -160,11 +160,45 @@
   </div>
 </template>
 
+/**
+ * SKU 生成器组件
+ * 通过笛卡尔积算法自动生成 SKU 组合，支持预定义值和自定义值
+ *
+ * 核心功能：
+ * - 支持预定义值勾选（checkbox）
+ * - 支持自定义值输入（tag-input）
+ * - 笛卡尔积生成所有 SKU 组合
+ * - 支持批量设置价格、库存、预警值
+ * - 自动生成 SKU 编号
+ * - 保留已有 SKU 数据（重新生成时）
+ *
+ * @component SkuGenerator
+ */
 <script setup>
 import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const props = defineProps({
+  /**
+   * 属性配置列表
+   * @type {Array}
+   * @required
+   * @example
+   * [
+   *   {
+   *     attr_id: 'ATTR001',
+   *     attr_name: '颜色',
+   *     predefined_values: ['金色', '白色', '黑色'],
+   *     allow_custom: 1
+   *   },
+   *   {
+   *     attr_id: 'ATTR002',
+   *     attr_name: '内存',
+   *     predefined_values: ['128GB', '256GB', '512GB'],
+   *     allow_custom: 0
+   *   }
+   * ]
+   */
   attributes: {
     type: Array,
     default: () => []
@@ -178,7 +212,9 @@ const customAttrValues = ref({})  // 用户自定义的值
 const inputValues = ref({})  // 输入框的值
 const skuList = ref([])  // SKU列表
 
-// 初始化
+/**
+ * 监听属性配置变化，初始化数据结构
+ */
 watch(() => props.attributes, (newAttrs) => {
   if (newAttrs && newAttrs.length > 0) {
     newAttrs.forEach(attr => {
@@ -195,54 +231,85 @@ watch(() => props.attributes, (newAttrs) => {
   }
 }, { immediate: true, deep: true })
 
-// 获取某个属性的所有已选值（预定义 + 自定义）
+/**
+ * 获取某个属性的所有已选值（预定义 + 自定义）
+ * @param {string} attrId - 属性ID
+ * @returns {Array} 所有已选值
+ */
 const getAllSelectedValues = (attrId) => {
   const predefined = selectedAttrValues.value[attrId] || []
   const custom = customAttrValues.value[attrId] || []
   return [...predefined, ...custom]
 }
 
-// 添加自定义值
+/**
+ * 添加自定义值
+ * @param {string} attrId - 属性ID
+ */
 const addCustomValue = (attrId) => {
   const value = inputValues.value[attrId]
   if (!value || !value.trim()) {
     return
   }
-  
+
   if (!customAttrValues.value[attrId]) {
     customAttrValues.value[attrId] = []
   }
-  
+
   // 检查是否重复（包括预定义值和自定义值）
   const allValues = getAllSelectedValues(attrId)
   if (allValues.includes(value.trim())) {
     ElMessage.warning('该值已存在')
     return
   }
-  
+
   customAttrValues.value[attrId].push(value.trim())
   inputValues.value[attrId] = ''
-  
+
   generateSku()
 }
 
-// 删除自定义值
+/**
+ * 删除自定义值
+ * @param {string} attrId - 属性ID
+ * @param {number} index - 要删除的索引
+ */
 const removeCustomValue = (attrId, index) => {
   customAttrValues.value[attrId].splice(index, 1)
   generateSku()
 }
 
-// 属性值变化
+/**
+ * 属性值变化处理（预定义值勾选）
+ * 触发 SKU 重新生成
+ */
 const onAttrChange = () => {
   generateSku()
 }
 
-// 生成SKU（笛卡尔积）
+/**
+ * 生成 SKU（笛卡尔积算法）
+ *
+ * 算法说明：
+ * 1. 获取所有已选属性值（预定义 + 自定义）
+ * 2. 使用笛卡尔积算法生成所有组合
+ * 3. 为每个组合生成 SKU 对象
+ * 4. 保留已存在的 SKU 数据（价格、库存等）
+ *
+ * 示例：
+ * 属性1：颜色 = ['金色', '白色']
+ * 属性2：内存 = ['128GB', '256GB']
+ * 生成 4 个 SKU：
+ * - 金色-128GB
+ * - 金色-256GB
+ * - 白色-128GB
+ * - 白色-256GB
+ */
 const generateSku = () => {
-  // 获取所有已选属性值（预定义 + 自定义）
+  // 1. 获取所有已选属性值（预定义 + 自定义）
   const attrArrays = []
   const attrNames = []
-  
+
   props.attributes.forEach(attr => {
     const values = getAllSelectedValues(attr.attr_id)
     if (values && values.length > 0) {
@@ -250,40 +317,40 @@ const generateSku = () => {
       attrNames.push(attr.attr_name)
     }
   })
-  
+
   if (attrArrays.length === 0) {
     skuList.value = []
     emit('change', [])
     return
   }
-  
-  // 笛卡尔积生成所有组合
+
+  // 2. 笛卡尔积生成所有组合
   const cartesian = (...args) => {
     return args.reduce((acc, curr) => {
       return acc.flatMap(a => curr.map(b => [...(Array.isArray(a) ? a : [a]), b]))
     })
   }
-  
+
   const combinations = cartesian(...attrArrays)
-  
-  // 生成SKU列表
+
+  // 3. 生成 SKU 列表
   const newSkuList = combinations.map((combo, index) => {
-    // 生成SKU名称
+    // 生成 SKU 名称（属性值用 - 连接）
     const skuName = combo.map(c => c.value).join('-')
-    
-    // 生成SKU编号
+
+    // 生成 SKU 编号（时间戳 + 索引）
     const skuCode = `${Date.now()}${String(index).padStart(4, '0')}`
-    
+
     // 构建属性对象
     const skuAttrs = {}
     combo.forEach(c => {
       skuAttrs[c.attrName] = c.value
       skuAttrs[`attr_${c.attrId}`] = c.value  // 用于表格显示
     })
-    
-    // 查找是否已存在同样的SKU（保留原有数据）
+
+    // 4. 查找是否已存在同样的 SKU（保留原有数据）
     const existing = skuList.value.find(sku => sku.sku_name === skuName)
-    
+
     return {
       sku_name: skuName,
       sku_code: existing ? existing.sku_code : skuCode,
@@ -295,23 +362,29 @@ const generateSku = () => {
       ...skuAttrs  // 展开属性用于表格显示
     }
   })
-  
+
   skuList.value = newSkuList
   emit('change', newSkuList)
 }
 
-// SKU数据变化
+/**
+ * SKU 数据变化处理
+ * 触发 change 事件，通知父组件
+ */
 const onSkuChange = () => {
   emit('change', skuList.value)
 }
 
-// 同步价格
+/**
+ * 同步价格
+ * 批量设置所有 SKU 的价格
+ */
 const syncPrice = async () => {
   const { value } = await ElMessageBox.prompt('请输入统一价格', '同步价格', {
     inputPattern: /^\d+(\.\d{1,2})?$/,
     inputErrorMessage: '请输入有效的价格'
   })
-  
+
   const price = parseFloat(value)
   skuList.value.forEach(sku => {
     sku.price = price
@@ -319,13 +392,16 @@ const syncPrice = async () => {
   onSkuChange()
 }
 
-// 同步库存
+/**
+ * 同步库存
+ * 批量设置所有 SKU 的库存
+ */
 const syncInventory = async () => {
   const { value } = await ElMessageBox.prompt('请输入统一库存', '同步库存', {
     inputPattern: /^\d+$/,
     inputErrorMessage: '请输入有效的库存数量'
   })
-  
+
   const inventory = parseInt(value)
   skuList.value.forEach(sku => {
     sku.inventory = inventory
@@ -333,13 +409,16 @@ const syncInventory = async () => {
   onSkuChange()
 }
 
-// 同步预警值
+/**
+ * 同步预警值
+ * 批量设置所有 SKU 的库存预警值
+ */
 const syncStockAlert = async () => {
   const { value } = await ElMessageBox.prompt('请输入统一预警值', '同步预警值', {
     inputPattern: /^\d+$/,
     inputErrorMessage: '请输入有效的预警值'
   })
-  
+
   const stockAlert = parseInt(value)
   skuList.value.forEach(sku => {
     sku.stock_alert = stockAlert
@@ -347,6 +426,10 @@ const syncStockAlert = async () => {
   onSkuChange()
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getSku: 获取 SKU 列表
+ */
 defineExpose({
   getSku: () => skuList.value
 })

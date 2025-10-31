@@ -46,18 +46,62 @@
   </el-row>
 </template>
 
+/**
+ * 开关组件
+ * 基础表单控件，支持布尔值切换
+ *
+ * 核心功能：
+ * - 支持开关切换（true/false）
+ * - 支持自定义激活值和非激活值（activeValue/inactiveValue）
+ * - 支持必填校验
+ * - 支持类型校验（使用 ajv）
+ *
+ * 使用场景：
+ * - 商品上架/下架
+ * - 功能开启/关闭
+ * - 状态启用/禁用
+ *
+ * @component Switch
+ */
 <script setup>
 import { ref, toRefs, watch, onMounted, inject} from 'vue'
 const ajv = inject('ajv')
+
 const props = defineProps({
+  /**
+   * Schema 配置
+   * @type {Object}
+   * @required
+   * @example
+   * {
+   *   label: '上架状态',
+   *   option: {
+   *     activeValue: 1,
+   *     inactiveValue: 0,
+   *     activeText: '上架',
+   *     inactiveText: '下架',
+   *     required: true
+   *   }
+   * }
+   */
   schema: {
     type: Object,
     default: () => ({})
   },
+
+  /**
+   * Schema 键名
+   * @type {string}
+   */
   schemaKey: {
     type: String,
     default: ''
   },
+
+  /**
+   * 开关值（用于数据回显）
+   * @type {string|number|boolean|Object}
+   */
   model: {
     type: [String, Number, Boolean, Object],
     default: undefined
@@ -71,17 +115,26 @@ const name = ref('switch')
 const dotValue = ref()
 const validTips = ref('')
 
-// 初始化数据
+/**
+ * 初始化数据
+ * 从 model 或 schema.option.default 加载初始值
+ */
 const initData = () => {
   // 如果有model值，使用model值，否则使用schema中定义的默认值
   dotValue.value = model.value !== undefined ? model.value : schema.option?.default
   validTips.value = ''
 }
 
+/**
+ * 组件挂载时初始化数据
+ */
 onMounted(() => {
   initData()
 })
 
+/**
+ * 监听 model 和 schema 变化，重新初始化数据
+ */
 watch([model, schema], () => {
   initData()
 }, {
@@ -89,14 +142,25 @@ watch([model, schema], () => {
   immediate: true
 })
 
-// 获取表单值
+/**
+ * 获取表单值
+ * @returns {Object} 表单值对象
+ */
 const getValue = () => {
   return dotValue.value !== undefined ? {
     [schemaKey]: dotValue.value
   } : {}
 }
 
-// 表单校验
+/**
+ * 表单校验
+ *
+ * 校验规则：
+ * 1. 必填校验（required）
+ * 2. 类型校验（type）
+ *
+ * @returns {boolean} 校验结果
+ */
 const validate = () => {
   validTips.value = ''
 
@@ -128,21 +192,38 @@ const validate = () => {
   return true
 }
 
-// 输入框聚焦事件
+/**
+ * 输入框聚焦事件处理
+ * 清空校验提示
+ */
 const onFocus = () => {
   validTips.value = ''
 }
 
-// 输入框失焦事件
+/**
+ * 输入框失焦事件处理
+ * 触发校验
+ */
 const onBlur = () => {
   validate()
 }
 
-// 值变化事件
+/**
+ * 值变化事件处理
+ * 触发校验
+ *
+ * @param {any} value - 新值
+ */
 const onChange = (value) => {
   validate()
 }
 
+/**
+ * 暴露给父组件的方法
+ * - getValue: 获取开关值
+ * - validate: 校验开关值
+ * - name: 组件名称
+ */
 defineExpose({
   getValue,
   validate,
