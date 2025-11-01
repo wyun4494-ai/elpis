@@ -91,7 +91,7 @@ const save = async () => {
   if(!res || !res.success) {
     ElNotification({
       title: '保存失败',
-      message: '保存失败',
+      message: res?.message || '保存失败',
       type: 'error'
     })
     return

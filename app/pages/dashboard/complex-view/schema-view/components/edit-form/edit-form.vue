@@ -129,14 +129,14 @@ const save = async () => {
   loading.value = false
   if(!res || !res.success) {
     ElNotification({
-      title: '提示',
-      message: '修改失败',
+      title: '修改失败',
+      message: res?.message || '修改失败',
       type: 'error'
     })
     return
   }
   ElNotification({
-    title: '提示',
+    title: '修改成功',
     message: '修改成功',
     type: 'success'
   })
