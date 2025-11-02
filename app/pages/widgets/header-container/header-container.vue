@@ -23,6 +23,12 @@
           </el-row>
         </el-row>
 
+        <!-- 面包屑导航 -->
+        <Breadcrumb
+          v-if="showBreadcrumb && Breadcrumb"
+          :key="breadcrumbKey"
+        />
+
         <!-- 插槽： 中间菜单区域   -->
         <slot name="menu-content" />
         <!-- 右上方 设置区域 -->
@@ -58,6 +64,7 @@
  *
  * 核心功能：
  * - 显示 Logo 和标题
+ * - 显示面包屑导航
  * - 提供菜单插槽（menu-content）
  * - 提供设置区域插槽（setting-content）
  * - 集成主题切换器
@@ -75,9 +82,22 @@
  * @component HeaderContainer
  */
 <script setup>
-// import { ref } from 'vue'
+import { computed, ref, watch, defineAsyncComponent, getCurrentInstance } from 'vue'
 import businessHeaderConfig from '$businessHeaderConfig'
 import ThemeSwitcher from './complex-view/theme-switcher/theme-switcher.vue'
+
+// 使用 getCurrentInstance() 安全地访问 router，避免在非 router-view 页面报错
+const instance = getCurrentInstance()
+const router = instance?.appContext?.config?.globalProperties?.$router
+const route = instance?.appContext?.config?.globalProperties?.$route
+
+// 判断是否在 router-view 内且是 dashboard 页面
+const isInRouterView = computed(() => {
+  return !!(router && route && route.path && route.path.startsWith('/view/dashboard'))
+})
+
+// 只在 router-view 内且是 dashboard 页面时才加载面包屑组件
+const Breadcrumb = defineAsyncComponent(() => import('./complex-view/breadcrumb/breadcrumb.vue'))
 
 defineProps({
   /**
@@ -90,6 +110,30 @@ defineProps({
     default: ''
   }
 })
+
+/**
+ * 是否显示面包屑导航
+ * 只在 dashboard 页面显示面包屑
+ */
+const showBreadcrumb = computed(() => {
+  return isInRouterView.value
+})
+
+/**
+ * 面包屑 key，用于强制刷新
+ */
+const breadcrumbKey = ref(0)
+
+// 只在 router-view 内才监听路由变化
+if (route) {
+  watch(
+    () => route.query,
+    () => {
+      breadcrumbKey.value++
+    },
+    { deep: true }
+  )
+}
 </script>
 
 <style lang="less">
@@ -108,38 +152,49 @@ defineProps({
     .header-row {
       height: 60px;
       padding: 0 20px;
-      
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+
       .title-panel {
         width: 180px;
         min-width: 180px;
-        
+        flex-shrink: 0;
+
         .logo {
           margin-right: 10px;
           width: 25px;
           height: 25px;
           border-radius: 50%;
         }
-        
+
         .text {
           font-size: 15px;
           font-weight: 500;
         }
       }
     }
-    
+
     // 右上方 设置区域
     .setting-panel {
       margin-left: auto;
       width: auto;
       min-width: 240px;
+      flex-shrink: 0;
     }
   }
-  
+
   // 主要区域容器
-  // .main-container{}
+  .main-container {
+    padding: 10px !important;
+  }
 }
 
 :deep(.el-header) {
   padding: 0;
+}
+
+:deep(.el-main) {
+  padding: 10px;
 }
 </style>

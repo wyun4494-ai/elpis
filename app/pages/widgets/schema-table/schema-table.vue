@@ -1,12 +1,21 @@
 <template>
-  <div class="search-panel"> 
+  <div class="search-panel">
     <!-- 表格  -->
     <el-table
       v-if="schema && schema.properties"
       v-loading="loading"
       class="table"
       :data="tableData"
+      @selection-change="handleSelectionChange"
     >
+      <!-- 多选列（如果启用） -->
+      <el-table-column
+        v-if="selectable"
+        type="selection"
+        width="55"
+        fixed="left"
+      />
+
       <template v-for="(schemaItem, key) in schema.properties">
         <el-table-column
           v-if="schemaItem?.option?.visible !== false"
@@ -16,7 +25,10 @@
           v-bind="schemaItem?.option"
         >
           <!-- 自定义列渲染 -->
-          <template v-if="schemaItem?.option?.comType" #default="scope">
+          <template
+            v-if="schemaItem?.option?.comType"
+            #default="scope"
+          >
             <component
               :is="getColumnComponent(schemaItem.option.comType)"
               :schema="schemaItem"
@@ -46,11 +58,46 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 分页 -->
+    <!-- 批量操作和分页 -->
     <el-row
-      justify="end"
+      justify="space-between"
+      align="middle"
       class="pagination"
     >
+      <!-- 批量操作 -->
+      <div
+        v-if="selectable"
+        class="batch-operation"
+      >
+        <el-select
+          v-model="batchOperationType"
+          placeholder="请选择批量操作"
+          style="width: 160px"
+        >
+          <el-option
+            label="商品上架"
+            value="shelf-on"
+          />
+          <el-option
+            label="商品下架"
+            value="shelf-off"
+          />
+          <el-option
+            label="商品删除"
+            value="delete"
+          />
+        </el-select>
+        <el-button
+          type="primary"
+          style="margin-left: 10px"
+          @click="handleBatchOperation"
+        >
+          确定
+        </el-button>
+      </div>
+      <div v-else />
+
+      <!-- 分页 -->
       <el-pagination
         :current-page="currentPage"
         :page-size="pageSize"
@@ -80,6 +127,7 @@
  */
 <script setup>
 import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import $curl from '$elpisCommon/curl'
 import TableItemConfig from './table-item-config'
 
@@ -161,12 +209,23 @@ const props =  defineProps({
   buttons: {
     type: Array,
     default: () => []
+  },
+
+  /**
+   * 是否启用多选功能
+   * @type {Boolean}
+   * @default false
+   * @example true
+   */
+  selectable: {
+    type: Boolean,
+    default: false
   }
 })
 
-const { schema, buttons, api, apiParams } = toRefs(props);
+const { schema, buttons, api, apiParams, selectable } = toRefs(props);
 
-const emit = defineEmits(['operate']);
+const emit = defineEmits(['operate', 'selection-change']);
 
 /**
  * 计算操作列宽度
@@ -185,6 +244,10 @@ const tableData = ref([]); // 表格数据
 const currentPage = ref(1); // 当前页码
 const pageSize = ref(50); // 每页条数
 const total = ref(0); // 数据总数
+
+// 批量操作相关
+const batchOperationType = ref(''); // 批量操作类型
+const selectedRows = ref([]); // 选中的行数据
 
 /**
  * 组件挂载时初始化数据
@@ -337,6 +400,160 @@ const getColumnComponent = (comType) => {
 }
 
 /**
+ * 处理表格多选变化
+ * 当用户选中/取消选中表格行时触发
+ *
+ * @param {Array} selection - 当前选中的行数据数组
+ */
+const handleSelectionChange = (selection) => {
+  console.log('表格选中项变化:', selection)
+  selectedRows.value = selection
+  emit('selection-change', selection)
+}
+
+/**
+ * 处理批量操作
+ * 根据选择的操作类型执行对应的批量操作
+ */
+const handleBatchOperation = async () => {
+  // 1. 检查是否选中了商品
+  if (!selectedRows.value || selectedRows.value.length === 0) {
+    ElNotification({
+      title: '警告',
+      message: '请先选择要操作的商品',
+      type: 'warning',
+      duration: 3000
+    })
+    return
+  }
+
+  // 2. 检查是否选择了操作类型
+  if (!batchOperationType.value) {
+    ElNotification({
+      title: '警告',
+      message: '请选择批量操作类型',
+      type: 'warning',
+      duration: 3000
+    })
+    return
+  }
+
+  // 3. 获取主键字段名（从 schema 中查找）
+  const primaryKey = Object.keys(schema.value.properties).find(k =>
+    schema.value.properties[k].tableOption
+  ) || 'product_id'
+
+  // 4. 提取选中商品的ID列表
+  const productIds = selectedRows.value.map(row => row[primaryKey])
+
+  // 5. 根据操作类型执行对应的批量操作
+  try {
+    if (batchOperationType.value === 'shelf-on') {
+      await handleBatchShelfOn(productIds)
+    } else if (batchOperationType.value === 'shelf-off') {
+      await handleBatchShelfOff(productIds)
+    } else if (batchOperationType.value === 'delete') {
+      await handleBatchDelete(productIds)
+    }
+  } catch (error) {
+    console.error('批量操作失败:', error)
+  }
+}
+
+/**
+ * 批量上架商品
+ * @param {Array<string>} productIds - 商品ID列表
+ */
+const handleBatchShelfOn = async (productIds) => {
+  try {
+    const res = await $curl({
+      method: 'post',
+      url: `${api.value}/batch/shelf-on`,
+      data: { product_ids: productIds },
+      successMessage: '批量上架成功',
+      errorMessage: '批量上架失败'
+    })
+
+    if (res && res.success) {
+      // 刷新表格数据
+      await loadTableData()
+      // 清空选择
+      batchOperationType.value = ''
+    }
+  } catch (error) {
+    console.error('批量上架失败:', error)
+  }
+}
+
+/**
+ * 批量下架商品
+ * @param {Array<string>} productIds - 商品ID列表
+ */
+const handleBatchShelfOff = async (productIds) => {
+  try {
+    const res = await $curl({
+      method: 'post',
+      url: `${api.value}/batch/shelf-off`,
+      data: { product_ids: productIds },
+      successMessage: '批量下架成功',
+      errorMessage: '批量下架失败'
+    })
+
+    if (res && res.success) {
+      // 刷新表格数据
+      await loadTableData()
+      // 清空选择
+      batchOperationType.value = ''
+    }
+  } catch (error) {
+    console.error('批量下架失败:', error)
+  }
+}
+
+/**
+ * 批量删除商品
+ * @param {Array<string>} productIds - 商品ID列表
+ */
+const handleBatchDelete = async (productIds) => {
+  try {
+    // 弹出确认对话框
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${productIds.length} 个商品吗？删除后可在回收站中恢复。`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    // 用户确认后执行删除
+    const res = await $curl({
+      method: 'post',
+      url: `${api.value}/batch/delete`,
+      data: {
+        product_ids: productIds,
+        delete_reason: '批量删除'
+      },
+      successMessage: '批量删除成功',
+      errorMessage: '批量删除失败'
+    })
+
+    if (res && res.success) {
+      // 刷新表格数据
+      await loadTableData()
+      // 清空选择
+      batchOperationType.value = ''
+    }
+  } catch (error) {
+    // 用户取消删除或删除失败
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+    }
+  }
+}
+
+/**
  * 处理列值变化（列内编辑）
  * 当用户在表格列中修改值时（如 switch 组件切换状态），自动调用 API 更新数据
  *
@@ -424,6 +641,11 @@ defineExpose({
   .pagination{
     margin: 10px 0;
     text-align: right;
+  }
+
+  .batch-operation {
+    display: flex;
+    align-items: center;
   }
 }
 

@@ -45,6 +45,11 @@
   }
   .main{
     overflow: auto;
+    padding: 10px !important;
   }
+}
+
+:deep(.el-main) {
+  padding: 10px;
 }
 </style>

@@ -202,10 +202,31 @@ const props = defineProps({
   attributes: {
     type: Array,
     default: () => []
+  },
+
+  /**
+   * 初始 SKU 数据（用于编辑模式回显）
+   * @type {Array}
+   * @example
+   * [
+   *   {
+   *     sku_name: '金色-128GB',
+   *     sku_code: 'SKU001',
+   *     attributes: { '颜色': '金色', '内存': '128GB' },
+   *     price: 5999,
+   *     promotion_price: null,
+   *     inventory: 100,
+   *     stock_alert: 50
+   *   }
+   * ]
+   */
+  modelValue: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['change'])
+const emit = defineEmits(['change', 'update:modelValue'])
 
 const selectedAttrValues = ref({})  // 预定义值中选中的
 const customAttrValues = ref({})  // 用户自定义的值
@@ -228,6 +249,64 @@ watch(() => props.attributes, (newAttrs) => {
         inputValues.value[attr.attr_id] = ''
       }
     })
+  }
+}, { immediate: true, deep: true })
+
+/**
+ * 监听 modelValue 变化，回显 SKU 数据（编辑模式）
+ */
+watch(() => props.modelValue, (newSkus) => {
+  if (newSkus && newSkus.length > 0) {
+
+    // 1. 设置 SKU 列表
+    skuList.value = newSkus.map(sku => ({
+      sku_name: sku.sku_name,
+      sku_code: sku.sku_code,
+      price: parseFloat(sku.price) || 0,
+      promotion_price: sku.promotion_price ? parseFloat(sku.promotion_price) : null,
+      inventory: parseInt(sku.inventory) || 0,
+      stock_alert: parseInt(sku.stock_alert) || 50,
+      attributes: sku.attributes || {},
+      ...sku.attributes  // 展开属性用于表格显示
+    }))
+
+    // 2. 根据 SKU 数据反推选中的属性值
+    if (props.attributes && props.attributes.length > 0) {
+      // 收集每个属性的所有值
+      const attrValuesMap = {}
+
+      newSkus.forEach(sku => {
+        if (sku.attributes) {
+          Object.entries(sku.attributes).forEach(([attrName, attrValue]) => {
+            // 找到对应的属性ID
+            const attr = props.attributes.find(a => a.attr_name === attrName)
+            if (attr) {
+              if (!attrValuesMap[attr.attr_id]) {
+                attrValuesMap[attr.attr_id] = new Set()
+              }
+              // 过滤掉以 attr_ 开头的属性（这些是用于表格显示的）
+              if (!attrName.startsWith('attr_')) {
+                attrValuesMap[attr.attr_id].add(attrValue)
+              }
+            }
+          })
+        }
+      })
+
+      // 3. 将收集到的值分配到预定义值和自定义值
+      Object.entries(attrValuesMap).forEach(([attrId, valuesSet]) => {
+        const attr = props.attributes.find(a => a.attr_id === attrId)
+        if (attr) {
+          const values = Array.from(valuesSet)
+          const predefinedValues = attr.predefined_values || []
+
+          // 分离预定义值和自定义值
+          selectedAttrValues.value[attrId] = values.filter(v => predefinedValues.includes(v))
+          customAttrValues.value[attrId] = values.filter(v => !predefinedValues.includes(v))
+        }
+      })
+    }
+
   }
 }, { immediate: true, deep: true })
 
@@ -335,15 +414,18 @@ const generateSku = () => {
 
   // 3. 生成 SKU 列表
   const newSkuList = combinations.map((combo, index) => {
+    // 确保 combo 是数组类型（处理只有一个属性的情况）
+    const comboArray = Array.isArray(combo) ? combo : [combo]
+
     // 生成 SKU 名称（属性值用 - 连接）
-    const skuName = combo.map(c => c.value).join('-')
+    const skuName = comboArray.map(c => c.value).join('-')
 
     // 生成 SKU 编号（时间戳 + 索引）
     const skuCode = `${Date.now()}${String(index).padStart(4, '0')}`
 
     // 构建属性对象
     const skuAttrs = {}
-    combo.forEach(c => {
+    comboArray.forEach(c => {
       skuAttrs[c.attrName] = c.value
       skuAttrs[`attr_${c.attrId}`] = c.value  // 用于表格显示
     })
@@ -429,9 +511,15 @@ const syncStockAlert = async () => {
 /**
  * 暴露给父组件的方法
  * - getSku: 获取 SKU 列表
+ * - setSkuList: 设置 SKU 列表（用于外部初始化）
  */
 defineExpose({
-  getSku: () => skuList.value
+  getSku: () => skuList.value,
+  setSkuList: (skus) => {
+    if (skus && Array.isArray(skus)) {
+      skuList.value = skus
+    }
+  }
 })
 </script>
 

@@ -83,6 +83,10 @@ async function getProjectConfig() {
     projName.value = name
     menuStore.setMenuList(menu)
 
+    // 设置项目名称和 key 到 store
+    projectStore.setProjectName(name)
+    projectStore.setProjectKey(route.query.proj_key)
+
     return true; // 返回成功状态
   } catch (error) {
     console.error('获取项目配置失败:', error)

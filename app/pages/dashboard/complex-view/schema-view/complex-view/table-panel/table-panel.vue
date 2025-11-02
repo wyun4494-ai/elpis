@@ -21,7 +21,9 @@
       :schema="tableSchema"
       :api-params="apiParams"
       :buttons="tableConfig?.rowButtons ?? []"
+      :selectable="tableConfig?.selectable ?? false"
       @operate="operationHandler"
+      @selection-change="handleSelectionChange"
     >
       <!--  -->
     </schema-table>
@@ -46,7 +48,7 @@ const {
 } = inject('schemaViewData')
 
 const schemaTableRef = ref(null)
-const emit = defineEmits(['operate'])
+const emit = defineEmits(['operate', 'selection-change'])
 
 const eventHandlerMap = {
   remove: removeData,
@@ -54,6 +56,15 @@ const eventHandlerMap = {
   permanentDelete: permanentDeleteData,
   viewSubCategories: viewSubCategories,
   navigate: navigateToPage
+}
+
+/**
+ * 处理表格多选变化
+ * @param {Array} selection - 选中的行数据数组
+ */
+const handleSelectionChange = (selection) => {
+  console.log('Table Panel - 选中项变化:', selection)
+  emit('selection-change', selection)
 }
 
 // 获取按钮事件名
@@ -337,14 +348,14 @@ defineExpose({
 <style lang="less" scoped>
 .table-panel {
   flex: 1;
-  margin: 10px;
+  margin: 0;
   width: 100%;
   height: 100%;
 
   .operation-panel {
     margin-bottom: 10px;
   }
-} 
+}
 :deep(.el-card__body) {
   height: 98%;
   display: flex;

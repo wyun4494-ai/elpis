@@ -58,6 +58,7 @@
               <!-- SKU生成器组件 -->
               <sku-generator
                 ref="skuGeneratorRef"
+                v-model="skuData"
                 :attributes="productTypeConfig.attributes"
                 @change="handleSkuChange"
               />
@@ -341,15 +342,16 @@ const handleParamsChange = (data) => {
 // 加载商品详情（编辑时）
 const loadProductDetail = async (productId) => {
   try {
+    // 1. 加载商品基本信息
     const res = await $curl({
       method: 'get',
       url: api.value,
       params: { product_id: productId }
     })
-    
+
     if (res && res.success && res.data) {
       const product = res.data
-      
+
       // 直接设置完整数据,避免先设置空对象导致级联选择器重复初始化
       basicInfo.value = {
         product_name: product.product_name,
@@ -360,16 +362,63 @@ const loadProductDetail = async (productId) => {
         inventory: product.inventory,
         shelf_status: product.shelf_status
       }
-      
+
       // 设置商品图片数据
       imageData.value = {
         product_images: product.product_images || []
       }
-      
+
       await nextTick()
-      
+
+      // 2. 加载商品类型配置
       if (product.category_id) {
         await loadProductType(product.category_id)
+
+        // 等待类型配置加载完成后，再加载 SKU 和参数数据
+        // 这样可以确保 SKU 生成器组件已经渲染
+        await nextTick()
+      }
+
+      // 3. 加载 SKU 数据（移到 loadProductType 之后，确保组件已渲染）
+      try {
+        const skuRes = await $curl({
+          method: 'get',
+          url: `/api/proj/product/${productId}/skus`
+        })
+
+        if (skuRes && skuRes.success && Array.isArray(skuRes.data)) {
+          skuData.value = skuRes.data
+
+          // 等待下一个 tick，确保 SKU 生成器组件已经渲染和 v-model 绑定生效
+          await nextTick()
+
+          // 手动调用 SKU 生成器的 setSkuList 方法（作为备用方案）
+          if (skuGeneratorRef.value && typeof skuGeneratorRef.value.setSkuList === 'function') {
+            skuGeneratorRef.value.setSkuList(skuRes.data)
+          }
+        } else {
+          skuData.value = []
+        }
+      } catch (error) {
+        console.error('Load SKU data error:', error)
+        skuData.value = []
+      }
+
+      // 4. 加载商品参数数据
+      try {
+        const paramsRes = await $curl({
+          method: 'get',
+          url: `/api/proj/product/${productId}/params`
+        })
+
+        if (paramsRes && paramsRes.success && paramsRes.data) {
+          paramsData.value = paramsRes.data
+        } else {
+          paramsData.value = {}
+        }
+      } catch (error) {
+        console.error('Load params data error:', error)
+        paramsData.value = {}
       }
     }
   } catch (error) {
