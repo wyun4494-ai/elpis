@@ -39,8 +39,7 @@
               <el-checkbox
                 v-for="param in getParamsByCategory(category)"
                 :key="param.param_id"
-                :label="param.param_id"
-                :model-value="isParamSelected(param.param_id)"
+                v-model="param.checked"
                 @change="(checked) => toggleParam(param, checked)"
               >
                 <span class="param-name">{{ param.param_name }}</span>
@@ -231,10 +230,15 @@ const loadParamLibrary = async () => {
 /**
  * 根据分类获取参数
  * @param {string} category - 参数分类
- * @returns {Array} 该分类下的参数列表
+ * @returns {Array} 该分类下的参数列表（包含 checked 属性）
  */
 const getParamsByCategory = (category) => {
-  return paramLibrary.value.filter(p => p.param_category === category)
+  return paramLibrary.value
+    .filter(p => p.param_category === category)
+    .map(p => ({
+      ...p,
+      checked: isParamSelected(p.param_id)
+    }))
 }
 
 /**

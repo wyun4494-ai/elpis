@@ -462,16 +462,20 @@ const onSkuChange = () => {
  * 批量设置所有 SKU 的价格
  */
 const syncPrice = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一价格', '同步价格', {
-    inputPattern: /^\d+(\.\d{1,2})?$/,
-    inputErrorMessage: '请输入有效的价格'
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一价格', '同步价格', {
+      inputPattern: /^\d+(\.\d{1,2})?$/,
+      inputErrorMessage: '请输入有效的价格'
+    })
 
-  const price = parseFloat(value)
-  skuList.value.forEach(sku => {
-    sku.price = price
-  })
-  onSkuChange()
+    const price = parseFloat(value)
+    skuList.value.forEach(sku => {
+      sku.price = price
+    })
+    onSkuChange()
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 /**
@@ -479,16 +483,20 @@ const syncPrice = async () => {
  * 批量设置所有 SKU 的库存
  */
 const syncInventory = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一库存', '同步库存', {
-    inputPattern: /^\d+$/,
-    inputErrorMessage: '请输入有效的库存数量'
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一库存', '同步库存', {
+      inputPattern: /^\d+$/,
+      inputErrorMessage: '请输入有效的库存数量'
+    })
 
-  const inventory = parseInt(value)
-  skuList.value.forEach(sku => {
-    sku.inventory = inventory
-  })
-  onSkuChange()
+    const inventory = parseInt(value)
+    skuList.value.forEach(sku => {
+      sku.inventory = inventory
+    })
+    onSkuChange()
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 /**
@@ -496,16 +504,20 @@ const syncInventory = async () => {
  * 批量设置所有 SKU 的库存预警值
  */
 const syncStockAlert = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一预警值', '同步预警值', {
-    inputPattern: /^\d+$/,
-    inputErrorMessage: '请输入有效的预警值'
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一预警值', '同步预警值', {
+      inputPattern: /^\d+$/,
+      inputErrorMessage: '请输入有效的预警值'
+    })
 
-  const stockAlert = parseInt(value)
-  skuList.value.forEach(sku => {
-    sku.stock_alert = stockAlert
-  })
-  onSkuChange()
+    const stockAlert = parseInt(value)
+    skuList.value.forEach(sku => {
+      sku.stock_alert = stockAlert
+    })
+    onSkuChange()
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 /**

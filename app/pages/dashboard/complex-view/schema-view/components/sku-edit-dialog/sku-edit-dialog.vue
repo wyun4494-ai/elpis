@@ -326,58 +326,74 @@ const loadSkuList = async (productId) => {
 
 // 同步销售价格
 const syncPrice = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一销售价格', '同步销售价格', {
-    inputPattern: /^\d+(\.\d{1,2})?$/,
-    inputErrorMessage: '请输入有效的价格'
-  })
-  
-  const price = parseFloat(value)
-  skuList.value.forEach(sku => {
-    sku.price = price
-    markAsModified(sku.sku_id)
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一销售价格', '同步销售价格', {
+      inputPattern: /^\d+(\.\d{1,2})?$/,
+      inputErrorMessage: '请输入有效的价格'
+    })
+
+    const price = parseFloat(value)
+    skuList.value.forEach(sku => {
+      sku.price = price
+      markAsModified(sku.sku_id)
+    })
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 // 同步促销价格
 const syncPromotionPrice = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一促销价格', '同步促销价格', {
-    inputPattern: /^\d+(\.\d{1,2})?$/,
-    inputErrorMessage: '请输入有效的价格'
-  })
-  
-  const price = parseFloat(value)
-  skuList.value.forEach(sku => {
-    sku.promotion_price = price
-    markAsModified(sku.sku_id)
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一促销价格', '同步促销价格', {
+      inputPattern: /^\d+(\.\d{1,2})?$/,
+      inputErrorMessage: '请输入有效的价格'
+    })
+
+    const price = parseFloat(value)
+    skuList.value.forEach(sku => {
+      sku.promotion_price = price
+      markAsModified(sku.sku_id)
+    })
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 // 同步库存
 const syncInventory = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一库存', '同步库存', {
-    inputPattern: /^\d+$/,
-    inputErrorMessage: '请输入有效的库存数量'
-  })
-  
-  const inventory = parseInt(value)
-  skuList.value.forEach(sku => {
-    sku.inventory = inventory
-    markAsModified(sku.sku_id)
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一库存', '同步库存', {
+      inputPattern: /^\d+$/,
+      inputErrorMessage: '请输入有效的库存数量'
+    })
+
+    const inventory = parseInt(value)
+    skuList.value.forEach(sku => {
+      sku.inventory = inventory
+      markAsModified(sku.sku_id)
+    })
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 // 同步预警值
 const syncStockAlert = async () => {
-  const { value } = await ElMessageBox.prompt('请输入统一预警值', '同步预警值', {
-    inputPattern: /^\d+$/,
-    inputErrorMessage: '请输入有效的预警值'
-  })
-  
-  const stockAlert = parseInt(value)
-  skuList.value.forEach(sku => {
-    sku.stock_alert = stockAlert
-    markAsModified(sku.sku_id)
-  })
+  try {
+    const { value } = await ElMessageBox.prompt('请输入统一预警值', '同步预警值', {
+      inputPattern: /^\d+$/,
+      inputErrorMessage: '请输入有效的预警值'
+    })
+
+    const stockAlert = parseInt(value)
+    skuList.value.forEach(sku => {
+      sku.stock_alert = stockAlert
+      markAsModified(sku.sku_id)
+    })
+  } catch (error) {
+    // 用户取消操作，不做任何处理
+  }
 }
 
 // 保存
