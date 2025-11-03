@@ -22,6 +22,7 @@
       :api-params="apiParams"
       :buttons="tableConfig?.rowButtons ?? []"
       :selectable="tableConfig?.selectable ?? false"
+      :batch-buttons="tableConfig?.batchButtons ?? []"
       @operate="operationHandler"
       @selection-change="handleSelectionChange"
     >
@@ -68,14 +69,14 @@ const handleSelectionChange = (selection) => {
 }
 
 // 获取按钮事件名
-const operationHandler = ({ btnConfig, rowData }) => {
-  
+const operationHandler = ({ btnConfig, rowData, selectedRows }) => {
+
   const { eventKey } = btnConfig
 
   if (eventHandlerMap[eventKey]){
-    eventHandlerMap[eventKey]({ btnConfig, rowData })
+    eventHandlerMap[eventKey]({ btnConfig, rowData, selectedRows })
   } else {
-     emit('operate', { btnConfig, rowData })
+     emit('operate', { btnConfig, rowData, selectedRows })
   }
 }
 

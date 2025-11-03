@@ -7,6 +7,9 @@ import paramListDrawer from "./param-list-drawer/param-list-drawer.vue"
 import addParamFromLibrary from "./add-param-from-library/add-param-from-library.vue"
 import createParamDialog from "./create-param-dialog/create-param-dialog.vue"
 import restockDialog from "./restock-dialog/restock-dialog.vue"
+import batchRestockDialog from "./batch-restock-dialog/batch-restock-dialog.vue"
+import batchRestoreDialog from "./batch-restore-dialog/batch-restore-dialog.vue"
+import batchPermanentDeleteDialog from "./batch-permanent-delete-dialog/batch-permanent-delete-dialog.vue"
 import skuEditDialog from "./sku-edit-dialog/sku-edit-dialog.vue"
 
 // 业务扩展 component 配置
@@ -39,6 +42,15 @@ const componentConfig = {
   },
   restockDialog: {
     component: restockDialog
+  },
+  batchRestockDialog: {
+    component: batchRestockDialog
+  },
+  batchRestoreDialog: {
+    component: batchRestoreDialog
+  },
+  batchPermanentDeleteDialog: {
+    component: batchPermanentDeleteDialog
   },
   skuEditDialog: {
     component: skuEditDialog

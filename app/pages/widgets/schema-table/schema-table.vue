@@ -7,6 +7,7 @@
       class="table"
       :data="tableData"
       @selection-change="handleSelectionChange"
+      @sort-change="handleSortChange"
     >
       <!-- 多选列（如果启用） -->
       <el-table-column
@@ -66,7 +67,7 @@
     >
       <!-- 批量操作 -->
       <div
-        v-if="selectable"
+        v-if="selectable && batchButtons?.length > 0"
         class="batch-operation"
       >
         <el-select
@@ -75,16 +76,10 @@
           style="width: 160px"
         >
           <el-option
-            label="商品上架"
-            value="shelf-on"
-          />
-          <el-option
-            label="商品下架"
-            value="shelf-off"
-          />
-          <el-option
-            label="商品删除"
-            value="delete"
+            v-for="item in batchButtons"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
           />
         </el-select>
         <el-button
@@ -127,7 +122,7 @@
  */
 <script setup>
 import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
-import { ElNotification, ElMessageBox } from 'element-plus'
+import { ElNotification } from 'element-plus'
 import $curl from '$elpisCommon/curl'
 import TableItemConfig from './table-item-config'
 
@@ -220,10 +215,32 @@ const props =  defineProps({
   selectable: {
     type: Boolean,
     default: false
+  },
+
+  /**
+   * 批量操作按钮配置
+   * @type {Array}
+   * @example
+   * [
+   *   {
+   *     label: '批量补货',
+   *     value: 'batchRestock',
+   *     type: 'primary'
+   *   },
+   *   {
+   *     label: '批量删除',
+   *     value: 'batchDelete',
+   *     type: 'danger'
+   *   }
+   * ]
+   */
+  batchButtons: {
+    type: Array,
+    default: () => []
   }
 })
 
-const { schema, buttons, api, apiParams, selectable } = toRefs(props);
+const { schema, buttons, api, apiParams, selectable, batchButtons } = toRefs(props);
 
 const emit = defineEmits(['operate', 'selection-change']);
 
@@ -244,6 +261,10 @@ const tableData = ref([]); // 表格数据
 const currentPage = ref(1); // 当前页码
 const pageSize = ref(50); // 每页条数
 const total = ref(0); // 数据总数
+
+// 排序相关
+const sortField = ref(''); // 排序字段
+const sortOrder = ref(''); // 排序方向（ascending/descending）
 
 // 批量操作相关
 const batchOperationType = ref(''); // 批量操作类型
@@ -297,15 +318,24 @@ const fetchTableData = async () => {
 
   showLoading();
 
+  // 构建请求参数
+  const requestParams = {
+    ...apiParams.value,
+    page: currentPage.value,
+    pageSize: pageSize.value
+  };
+
+  // 添加排序参数
+  if (sortField.value && sortOrder.value) {
+    requestParams.sort_field = sortField.value;
+    requestParams.sort_order = sortOrder.value === 'ascending' ? 'asc' : 'desc';
+  }
+
   // 调用 API 获取数据
   const res = await $curl({
     method: 'get',
     url: `${api.value}/list`,
-    params: {
-      ...apiParams.value,
-      page: currentPage.value,
-      pageSize: pageSize.value
-    }
+    params: requestParams
   })
 
   hideLoading();
@@ -389,6 +419,29 @@ const onCurrentPageChange = async (value) => {
 }
 
 /**
+ * 处理表格排序变化
+ * @param {Object} sortInfo - 排序信息
+ * @param {string} sortInfo.column - 排序列对象
+ * @param {string} sortInfo.prop - 排序字段名
+ * @param {string} sortInfo.order - 排序方向（ascending/descending/null）
+ */
+const handleSortChange = async ({ column, prop, order }) => {
+  // 更新排序状态
+  if (order) {
+    sortField.value = prop;
+    sortOrder.value = order;
+  } else {
+    // 取消排序
+    sortField.value = '';
+    sortOrder.value = '';
+  }
+
+  // 重新加载数据（排序后回到第一页）
+  currentPage.value = 1;
+  await loadTableData();
+}
+
+/**
  * 获取表格列组件
  * 根据 comType 从 TableItemConfig 中获取对应的组件
  *
@@ -413,14 +466,14 @@ const handleSelectionChange = (selection) => {
 
 /**
  * 处理批量操作
- * 根据选择的操作类型执行对应的批量操作
+ * 根据选择的操作类型触发对应的事件
  */
 const handleBatchOperation = async () => {
-  // 1. 检查是否选中了商品
+  // 1. 检查是否选中了数据
   if (!selectedRows.value || selectedRows.value.length === 0) {
     ElNotification({
       title: '警告',
-      message: '请先选择要操作的商品',
+      message: '请先选择要操作的数据',
       type: 'warning',
       duration: 3000
     })
@@ -438,119 +491,25 @@ const handleBatchOperation = async () => {
     return
   }
 
-  // 3. 获取主键字段名（从 schema 中查找）
-  const primaryKey = Object.keys(schema.value.properties).find(k =>
-    schema.value.properties[k].tableOption
-  ) || 'product_id'
+  // 3. 查找对应的批量操作按钮配置
+  const batchButton = batchButtons.value.find(btn => btn.value === batchOperationType.value)
 
-  // 4. 提取选中商品的ID列表
-  const productIds = selectedRows.value.map(row => row[primaryKey])
-
-  // 5. 根据操作类型执行对应的批量操作
-  try {
-    if (batchOperationType.value === 'shelf-on') {
-      await handleBatchShelfOn(productIds)
-    } else if (batchOperationType.value === 'shelf-off') {
-      await handleBatchShelfOff(productIds)
-    } else if (batchOperationType.value === 'delete') {
-      await handleBatchDelete(productIds)
-    }
-  } catch (error) {
-    console.error('批量操作失败:', error)
+  if (!batchButton) {
+    console.error('未找到批量操作配置:', batchOperationType.value)
+    return
   }
-}
 
-/**
- * 批量上架商品
- * @param {Array<string>} productIds - 商品ID列表
- */
-const handleBatchShelfOn = async (productIds) => {
-  try {
-    const res = await $curl({
-      method: 'post',
-      url: `${api.value}/batch/shelf-on`,
-      data: { product_ids: productIds },
-      successMessage: '批量上架成功',
-      errorMessage: '批量上架失败'
-    })
+  // 4. 触发批量操作事件（通过 operate 事件传递给父组件）
+  emit('operate', {
+    btnConfig: {
+      ...batchButton,
+      eventKey: batchButton.eventKey || batchOperationType.value
+    },
+    selectedRows: selectedRows.value
+  })
 
-    if (res && res.success) {
-      // 刷新表格数据
-      await loadTableData()
-      // 清空选择
-      batchOperationType.value = ''
-    }
-  } catch (error) {
-    console.error('批量上架失败:', error)
-  }
-}
-
-/**
- * 批量下架商品
- * @param {Array<string>} productIds - 商品ID列表
- */
-const handleBatchShelfOff = async (productIds) => {
-  try {
-    const res = await $curl({
-      method: 'post',
-      url: `${api.value}/batch/shelf-off`,
-      data: { product_ids: productIds },
-      successMessage: '批量下架成功',
-      errorMessage: '批量下架失败'
-    })
-
-    if (res && res.success) {
-      // 刷新表格数据
-      await loadTableData()
-      // 清空选择
-      batchOperationType.value = ''
-    }
-  } catch (error) {
-    console.error('批量下架失败:', error)
-  }
-}
-
-/**
- * 批量删除商品
- * @param {Array<string>} productIds - 商品ID列表
- */
-const handleBatchDelete = async (productIds) => {
-  try {
-    // 弹出确认对话框
-    await ElMessageBox.confirm(
-      `确定要删除选中的 ${productIds.length} 个商品吗？删除后可在回收站中恢复。`,
-      '批量删除确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    // 用户确认后执行删除
-    const res = await $curl({
-      method: 'post',
-      url: `${api.value}/batch/delete`,
-      data: {
-        product_ids: productIds,
-        delete_reason: '批量删除'
-      },
-      successMessage: '批量删除成功',
-      errorMessage: '批量删除失败'
-    })
-
-    if (res && res.success) {
-      // 刷新表格数据
-      await loadTableData()
-      // 清空选择
-      batchOperationType.value = ''
-    }
-  } catch (error) {
-    // 用户取消删除或删除失败
-    if (error !== 'cancel') {
-      console.error('批量删除失败:', error)
-    }
-  }
+  // 5. 清空选择
+  batchOperationType.value = ''
 }
 
 /**
