@@ -23,6 +23,8 @@
 
 <script setup>
 import { ref, provide, computed, } from 'vue';
+import { ElMessageBox, ElNotification } from 'element-plus';
+import $curl from '$elpisCommon/curl.js';
 import SearchPanel from './complex-view/search-panel/search-panel.vue'
 import TablePanel from './complex-view/table-panel/table-panel.vue'
 import ComponentConfig from './components/component-config';
@@ -67,7 +69,10 @@ const eventHandlerMap = {
   viewSubCategories: viewSubCategories,
   batchRestock: batchRestock,
   batchRestore: batchRestore,
-  batchPermanentDelete: batchPermanentDelete
+  batchPermanentDelete: batchPermanentDelete,
+  batchShelfOn: batchShelfOn,
+  batchShelfOff: batchShelfOff,
+  batchDelete: batchDelete
 }
 
 // 表格操作
@@ -179,6 +184,171 @@ function batchPermanentDelete({ btnConfig, selectedRows }) {
   }
 
   comRef.show(selectedRows);
+}
+
+/**
+ * 批量上架商品
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Array} params.selectedRows - 选中的行数据
+ */
+async function batchShelfOn({ btnConfig, selectedRows }) {
+  // 1. 检查是否选中了数据
+  if (!selectedRows || selectedRows.length === 0) {
+    ElNotification({
+      title: '警告',
+      message: '请先选择要上架的商品',
+      type: 'warning'
+    });
+    return;
+  }
+
+  try {
+    // 2. 确认操作
+    await ElMessageBox.confirm(
+      `确定要上架 ${selectedRows.length} 个商品吗？`,
+      '批量上架确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    // 3. 提取商品 ID 列表
+    const productIds = selectedRows.map(item => item.product_id);
+
+    // 4. 调用批量上架 API
+    const res = await $curl({
+      method: 'post',
+      url: '/api/proj/product/batch/shelf-on',
+      data: {
+        product_ids: productIds
+      },
+      successMessage: '批量上架成功',
+      errorMessage: '批量上架失败'
+    });
+
+    if (res && res.success) {
+      // 5. 刷新表格数据
+      tablePanelRef.value.loadTableData();
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Batch shelf on error:', error);
+    }
+  }
+}
+
+/**
+ * 批量下架商品
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Array} params.selectedRows - 选中的行数据
+ */
+async function batchShelfOff({ btnConfig, selectedRows }) {
+  // 1. 检查是否选中了数据
+  if (!selectedRows || selectedRows.length === 0) {
+    ElNotification({
+      title: '警告',
+      message: '请先选择要下架的商品',
+      type: 'warning'
+    });
+    return;
+  }
+
+  try {
+    // 2. 确认操作
+    await ElMessageBox.confirm(
+      `确定要下架 ${selectedRows.length} 个商品吗？`,
+      '批量下架确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    // 3. 提取商品 ID 列表
+    const productIds = selectedRows.map(item => item.product_id);
+
+    // 4. 调用批量下架 API
+    const res = await $curl({
+      method: 'post',
+      url: '/api/proj/product/batch/shelf-off',
+      data: {
+        product_ids: productIds
+      },
+      successMessage: '批量下架成功',
+      errorMessage: '批量下架失败'
+    });
+
+    if (res && res.success) {
+      // 5. 刷新表格数据
+      tablePanelRef.value.loadTableData();
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Batch shelf off error:', error);
+    }
+  }
+}
+
+/**
+ * 批量删除商品
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Array} params.selectedRows - 选中的行数据
+ */
+async function batchDelete({ btnConfig, selectedRows }) {
+  // 1. 检查是否选中了数据
+  if (!selectedRows || selectedRows.length === 0) {
+    ElNotification({
+      title: '警告',
+      message: '请先选择要删除的商品',
+      type: 'warning'
+    });
+    return;
+  }
+
+  try {
+    // 2. 确认操作（带输入框，可选填删除原因）
+    const { value: deleteReason } = await ElMessageBox.prompt(
+      `确定要删除 ${selectedRows.length} 个商品吗？删除后可在回收站中恢复。`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        inputPlaceholder: '请输入删除原因（可选）',
+        inputType: 'textarea'
+      }
+    );
+
+    // 3. 提取商品 ID 列表
+    const productIds = selectedRows.map(item => item.product_id);
+
+    // 4. 调用批量删除 API
+    const res = await $curl({
+      method: 'post',
+      url: '/api/proj/product/batch/delete',
+      data: {
+        product_ids: productIds,
+        delete_reason: deleteReason || ''
+      },
+      successMessage: '批量删除成功',
+      errorMessage: '批量删除失败'
+    });
+
+    if (res && res.success) {
+      // 5. 刷新表格数据
+      tablePanelRef.value.loadTableData();
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Batch delete error:', error);
+    }
+  }
 }
 
 // 处理来自子组件的命令

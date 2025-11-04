@@ -395,7 +395,8 @@ const loadProductDetail = async (productId) => {
         price: product.price,
         item_number: product.item_number,
         inventory: product.inventory,
-        shelf_status: product.shelf_status
+        shelf_status: product.shelf_status,
+        sort_order: product.sort_order
       }
 
       // 设置商品图片数据
