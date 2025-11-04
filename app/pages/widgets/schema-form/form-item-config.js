@@ -8,6 +8,7 @@ import upload from "./complex-view/upload/upload.vue"
 import attributeConfig from "./complex-view/attribute-config/attribute-config.vue"
 import paramSelector from "./complex-view/param-selector/param-selector.vue"
 import tagInput from "./complex-view/tag-input/tag-input.vue"
+import tiptapEditor from "./complex-view/tiptap-editor/tiptap-editor.vue"
 
 // 业务扩展 form-item 配置
 import BusinessFormItemConfig from '$businessFormItemConfig'
@@ -42,6 +43,9 @@ const FormItemConfig = {
   },
   'tag-input': {
     component: tagInput
+  },
+  'tiptap-editor': {
+    component: tiptapEditor
   }
 }
 

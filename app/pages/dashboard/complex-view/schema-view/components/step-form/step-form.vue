@@ -104,13 +104,30 @@
           >
             <template #header>
               <div class="card-header-title">
-                商品图片
+                商品相册
               </div>
             </template>
             <schema-form
               ref="imageFormRef"
               :schema="imageUploadSchema"
               :model="imageData"
+            />
+          </el-card>
+
+          <!-- 商品详情 -->
+          <el-card
+            shadow="never"
+            class="detail-editor-card"
+          >
+            <template #header>
+              <div class="card-header-title">
+                商品详情
+              </div>
+            </template>
+            <schema-form
+              ref="detailFormRef"
+              :schema="productDetailSchema"
+              :model="detailData"
             />
           </el-card>
         </div>
@@ -184,11 +201,13 @@ const basicFormRef = ref(null)
 const skuGeneratorRef = ref(null)
 const productParamsRef = ref(null)
 const imageFormRef = ref(null)
+const detailFormRef = ref(null)
 
 const basicInfo = ref({})
 const skuData = ref([])
 const paramsData = ref({})
 const imageData = ref({})
+const detailData = ref({})
 const productTypeConfig = ref(null)
 
 // 步骤定义
@@ -202,11 +221,25 @@ const imageUploadSchema = computed(() => {
   if (!schema.value || !schema.value.properties || !schema.value.properties.product_images) {
     return { type: 'object', properties: {} }
   }
-  
+
   return {
     type: 'object',
     properties: {
       product_images: schema.value.properties.product_images
+    }
+  }
+})
+
+// 商品详情Schema
+const productDetailSchema = computed(() => {
+  if (!schema.value || !schema.value.properties || !schema.value.properties.product_detail) {
+    return { type: 'object', properties: {} }
+  }
+
+  return {
+    type: 'object',
+    properties: {
+      product_detail: schema.value.properties.product_detail
     }
   }
 })
@@ -258,6 +291,7 @@ const show = async (rowData = null) => {
   skuData.value = []
   paramsData.value = {}
   imageData.value = {}
+  detailData.value = {}
   productTypeConfig.value = null
   
   if (rowData && rowData.product_id) {
@@ -368,6 +402,11 @@ const loadProductDetail = async (productId) => {
         product_images: product.product_images || []
       }
 
+      // 设置商品详情数据
+      detailData.value = {
+        product_detail: product.product_detail || ''
+      }
+
       await nextTick()
 
       // 2. 加载商品类型配置
@@ -431,10 +470,13 @@ const handleSubmit = async () => {
   try {
     // 获取图片数据
     const imageFormData = imageFormRef.value ? imageFormRef.value.getValue() : {}
-    
+    // 获取商品详情数据
+    const detailFormData = detailFormRef.value ? detailFormRef.value.getValue() : {}
+
     const submitData = {
       ...basicInfo.value,
       ...imageFormData,
+      ...detailFormData,
       skus: skuData.value,
       params: paramsData.value
     }
@@ -505,11 +547,15 @@ defineExpose({
   .param-config-card {
     margin-bottom: 20px;
   }
-  
+
   .image-upload-card {
     margin-bottom: 20px;
   }
-  
+
+  .detail-editor-card {
+    margin-bottom: 20px;
+  }
+
   .card-header-title {
     font-weight: bold;
     font-size: 16px;

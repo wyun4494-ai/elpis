@@ -23,12 +23,25 @@
           type="flex"
           align="middle"
           class="row-item"
+          :class="{ 'html-content-row': item.comType === 'html' }"
         >
           <el-row class="item-label">
             {{ item.label }}:
-            <br>  
+            <br>
           </el-row>
-          <el-row class="item-value">
+          <!-- 使用原生 div 渲染富文本 HTML 内容，避免在组件上使用 v-html -->
+          <!-- 已使用 DOMPurify 过滤 HTML，防止 XSS 攻击 -->
+          <!-- eslint-disable vue/no-v-html -->
+          <div
+            v-if="item.comType === 'html'"
+            class="item-value html-content"
+            v-html="sanitizeHtml(dotModel[key])"
+          />
+          <!-- eslint-enable vue/no-v-html -->
+          <el-row
+            v-else
+            class="item-value"
+          >
             {{ formatValue(key, dotModel[key], item) }}
           </el-row>
         </el-row>
@@ -41,6 +54,7 @@
 import { ref, inject } from 'vue';
 import $curl from '$elpisCommon/curl.js'
 import { ElNotification } from 'element-plus';
+import DOMPurify from 'dompurify';
 
 const isShow = ref(false)
 const loading = ref(false)
@@ -81,9 +95,42 @@ const formatValue = (key, value, item) => {
       return '上架'
     }
   }
-  
+
   // 其他字段直接返回原值
   return value
+}
+
+// 过滤 HTML 内容，防止 XSS 攻击
+const sanitizeHtml = (html) => {
+  if (!html) {
+    return '暂无内容'
+  }
+
+  // 使用 DOMPurify 过滤 HTML，只允许安全的标签和属性
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'code',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'blockquote', 'pre',
+      'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'span', 'div'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'target', 'rel',
+      'style', 'class', 'data-list-style-type',
+      'colspan', 'rowspan'
+    ],
+    ALLOWED_STYLES: {
+      '*': {
+        'list-style-type': [/^(disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman)$/],
+        'text-align': [/^(left|center|right|justify)$/],
+        'color': [/^#[0-9a-fA-F]{3,6}$/],
+        'background-color': [/^#[0-9a-fA-F]{3,6}$/]
+      }
+    }
+  })
 }
 
 // 获取表单数据
@@ -140,11 +187,11 @@ defineExpose({
     line-height: 1.6;
     padding: 15px 0;
     border-bottom: 1px solid #eaeef5;
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     .item-label {
       margin-right: 20px;
       width: 130px;
@@ -152,12 +199,169 @@ defineExpose({
       color: #2d3748;
       font-size: 15px;
     }
-    
+
     .item-value {
       color: #4a5568;
       font-size: 15px;
       flex: 1;
       word-break: break-word;
+    }
+  }
+
+  // HTML 内容行特殊样式
+  .html-content-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+
+    .item-label {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .html-content {
+      width: 100%;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 8px;
+      border: 1px solid #e4edf9;
+      line-height: 1.8;
+
+      :deep(h1) {
+        font-size: 2em;
+        font-weight: bold;
+        margin: 0.67em 0;
+      }
+
+      :deep(h2) {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin: 0.75em 0;
+      }
+
+      :deep(h3) {
+        font-size: 1.17em;
+        font-weight: bold;
+        margin: 0.83em 0;
+      }
+
+      /* 列表基础样式 - 不使用 !important，允许自定义样式和内联样式覆盖 */
+      :deep(ul),
+      :deep(ol) {
+        list-style: revert !important;
+        padding-left: 2em !important;
+        margin: 1em 0 !important;
+      }
+
+      :deep(ul) {
+        list-style-type: disc;
+      }
+
+      :deep(ol) {
+        list-style-type: decimal;
+      }
+
+      :deep(ul li),
+      :deep(ol li) {
+        display: list-item !important;
+        margin: 0.5em 0 !important;
+      }
+
+      /* 嵌套列表样式 - 仅在没有自定义样式类时生效 */
+      :deep(ul ul:not([class*="list-style-"])) {
+        list-style-type: circle;
+      }
+
+      :deep(ul ul ul:not([class*="list-style-"])) {
+        list-style-type: square;
+      }
+
+      /* 自定义列表样式类（使用 !important 确保优先级最高） */
+      :deep(ul.list-style-disc) {
+        list-style-type: disc !important;
+      }
+
+      :deep(ul.list-style-circle) {
+        list-style-type: circle !important;
+      }
+
+      :deep(ul.list-style-square) {
+        list-style-type: square !important;
+      }
+
+      :deep(ol.list-style-decimal) {
+        list-style-type: decimal !important;
+      }
+
+      :deep(ol.list-style-lower-alpha) {
+        list-style-type: lower-alpha !important;
+      }
+
+      :deep(ol.list-style-upper-alpha) {
+        list-style-type: upper-alpha !important;
+      }
+
+      :deep(ol.list-style-lower-roman) {
+        list-style-type: lower-roman !important;
+      }
+
+      :deep(ol.list-style-upper-roman) {
+        list-style-type: upper-roman !important;
+      }
+
+      :deep(blockquote) {
+        border-left: 3px solid #dcdfe6;
+        padding-left: 1em;
+        margin: 1em 0;
+        color: #606266;
+      }
+
+      :deep(pre) {
+        background-color: #f5f7fa;
+        border-radius: 4px;
+        padding: 1em;
+        margin: 1em 0;
+        overflow-x: auto;
+      }
+
+      :deep(code) {
+        background-color: #f5f7fa;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+      }
+
+      :deep(img) {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin: 1em 0;
+      }
+
+      :deep(a) {
+        color: #409eff;
+        text-decoration: underline;
+      }
+
+      :deep(a:hover) {
+        color: #66b1ff;
+      }
+
+      :deep(table) {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+      }
+
+      :deep(table td),
+      :deep(table th) {
+        border: 1px solid #dcdfe6;
+        padding: 8px;
+      }
+
+      :deep(table th) {
+        font-weight: bold;
+        background-color: #f5f7fa;
+      }
     }
   }
 }
