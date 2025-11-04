@@ -255,12 +255,13 @@ const basicInfoSchema = computed(() => {
   // 提取基本信息字段（schema 已由 buildDtoSchema 处理过，字段已包含 option）
   const basicFields = [
     'product_name',
-    'category_id', 
-    'brand_id', 
-    'item_number', 
-    'price', 
-    'inventory', 
-    'shelf_status'
+    'category_id',
+    'brand_id',
+    'item_number',
+    'price',
+    'inventory',
+    'shelf_status',
+    'sort_order'
   ]
   
   basicFields.forEach(field => {
@@ -480,11 +481,11 @@ const handleSubmit = async () => {
       skus: skuData.value,
       params: paramsData.value
     }
-    
+
     if (isEditMode.value) {
       submitData.product_id = editProductId.value
     }
-    
+
     const res = await $curl({
       method: isEditMode.value ? 'put' : 'post',
       url: api.value,
