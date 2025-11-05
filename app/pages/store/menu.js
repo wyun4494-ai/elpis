@@ -5,10 +5,28 @@ export const useMenuStore = defineStore('menu', () => {
   // 菜单列表
   const menuList = ref([]);
 
+  // 侧边栏折叠状态
+  const isCollapsed = ref(false);
+
   // 设置菜单列表配置
   const setMenuList = (list) => {
     menuList.value = list;
-  } 
+  }
+
+  // 切换侧边栏折叠状态
+  const toggleCollapse = () => {
+    isCollapsed.value = !isCollapsed.value;
+    // 保存到 localStorage
+    localStorage.setItem('sider-collapsed', isCollapsed.value ? '1' : '0');
+  }
+
+  // 从 localStorage 恢复折叠状态
+  const restoreCollapseState = () => {
+    const saved = localStorage.getItem('sider-collapsed');
+    if (saved !== null) {
+      isCollapsed.value = saved === '1';
+    }
+  }
 
   /**
    * 找出菜单目录
@@ -57,5 +75,13 @@ export const useMenuStore = defineStore('menu', () => {
   }
 
 
-  return { menuList, setMenuList, findMenuItem, findFirstMenuItem }
+  return {
+    menuList,
+    setMenuList,
+    findMenuItem,
+    findFirstMenuItem,
+    isCollapsed,
+    toggleCollapse,
+    restoreCollapseState
+  }
 })

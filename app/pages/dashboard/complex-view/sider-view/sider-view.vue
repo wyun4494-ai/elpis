@@ -5,6 +5,8 @@
       <el-menu
         :default-active="activeKey"
         :ellipsis="false"
+        :collapse="menuStore.isCollapsed"
+        :collapse-transition="false"
         @select="onMenuSelect"
       >
         <template v-for="item in menuList">
@@ -21,7 +23,15 @@
             :key="item.key"
             :index="item.key"
           >
-            {{ item.name }}
+            <el-icon v-if="item.icon">
+              <component :is="ElementPlusIconsVue[item.icon]" />
+            </el-icon>
+            <el-icon v-else>
+              <Document />
+            </el-icon>
+            <template #title>
+              <span>{{ item.name }}</span>
+            </template>
           </el-menu-item>
         </template>
       </el-menu>
@@ -39,6 +49,8 @@ import { useRouter, useRoute } from 'vue-router';
 import { useMenuStore } from '$elpisStore/menu.js'
 import siderContainer from '$elpisWidgets/sider-container/sider-container.vue';
 import subMenu from './complex-view/sub-menu/sub-menu.vue';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+import { Document } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const route = useRoute();

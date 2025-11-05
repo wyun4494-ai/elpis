@@ -1,5 +1,15 @@
 <template>
   <div class="breadcrumb-container">
+    <!-- 折叠/展开按钮 -->
+    <el-button
+      v-if="showCollapseButton"
+      class="collapse-button"
+      :icon="menuStore.isCollapsed ? Expand : Fold"
+      circle
+      size="small"
+      @click="handleToggleCollapse"
+    />
+
     <el-breadcrumb separator="/">
       <el-breadcrumb-item
         v-for="(item, index) in breadcrumbList"
@@ -19,15 +29,25 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '$elpisStore/project.js'
 import { useMenuStore } from '$elpisStore/menu.js'
+import { Expand, Fold } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
 const menuStore = useMenuStore()
+
+/**
+ * 是否显示折叠按钮
+ * 只在有侧边栏的页面显示（sider 模式）
+ */
+const showCollapseButton = computed(() => {
+  // 检查当前路由是否包含 sider
+  return route.path.includes('/dashboard/sider')
+})
 
 /**
  * 面包屑导航列表
@@ -129,6 +149,13 @@ const getMenuPath = (targetKey) => {
 }
 
 /**
+ * 处理折叠/展开按钮点击
+ */
+const handleToggleCollapse = () => {
+  menuStore.toggleCollapse()
+}
+
+/**
  * 处理面包屑点击事件
  * @param {Object} item - 面包屑项
  */
@@ -171,6 +198,17 @@ watch(
   flex: 1;
   min-width: 0; // 允许收缩
   overflow: hidden;
+  gap: 12px; // 折叠按钮和面包屑之间的间距
+
+  // 折叠按钮样式
+  .collapse-button {
+    flex-shrink: 0; // 不允许收缩
+    transition: all 0.3s;
+
+    &:hover {
+      background-color: #f5f7fa;
+    }
+  }
 
   :deep(.el-breadcrumb) {
     font-size: 14px;
@@ -236,6 +274,12 @@ watch(
 
 // 深色主题适配
 html.dark .breadcrumb-container {
+  .collapse-button {
+    &:hover {
+      background-color: #262727;
+    }
+  }
+
   :deep(.el-breadcrumb) {
     .el-breadcrumb__item {
       .el-breadcrumb__inner {
