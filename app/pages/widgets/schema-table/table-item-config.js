@@ -3,6 +3,7 @@ import priceItemNumberComponent from "./complex-view/price-item-number/price-ite
 import imageComponent from "./complex-view/image/image.vue"
 import textFormatComponent from "./complex-view/text-format/text-format.vue"
 import skuStatusComponent from "./complex-view/sku-status/sku-status.vue"
+import auditStatusButtonComponent from "./complex-view/audit-status-button/audit-status-button.vue"
 
 // 表格列组件配置
 const TableItemConfig = {
@@ -20,6 +21,9 @@ const TableItemConfig = {
   },
   skuStatus: {
     component: skuStatusComponent
+  },
+  auditStatusButton: {
+    component: auditStatusButtonComponent
   }
 }
 

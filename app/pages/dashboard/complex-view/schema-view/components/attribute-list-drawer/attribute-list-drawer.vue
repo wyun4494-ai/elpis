@@ -28,7 +28,10 @@
           </template>
 
           <!-- 属性名称 -->
-          <el-form-item label="属性名称" required>
+          <el-form-item
+            label="属性名称"
+            required
+          >
             <el-input
               v-model="attr.attr_name"
               placeholder="如：颜色、尺寸、内存"
@@ -102,8 +105,15 @@
     <!-- 底部按钮 -->
     <template #footer>
       <div class="drawer-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存属性</el-button>
+        <el-button @click="handleClose">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="handleSave"
+        >
+          保存属性
+        </el-button>
       </div>
     </template>
   </el-drawer>

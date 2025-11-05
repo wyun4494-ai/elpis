@@ -2,10 +2,12 @@
   <div class="search-panel">
     <!-- 表格  -->
     <el-table
+      ref="tableRef"
       v-if="schema && schema.properties"
       v-loading="loading"
       class="table"
       :data="tableData"
+      :row-key="getRowKey"
       @selection-change="handleSelectionChange"
       @sort-change="handleSortChange"
     >
@@ -15,6 +17,7 @@
         type="selection"
         width="55"
         fixed="left"
+        :reserve-selection="false"
       />
 
       <template v-for="(schemaItem, key) in schema.properties">
@@ -121,7 +124,7 @@
  * @component SchemaTable
  */
 <script setup>
-import { ref, toRefs, onMounted, computed, watch, nextTick,} from 'vue'
+import { ref, toRefs, onMounted, computed, watch, nextTick, provide } from 'vue'
 import { ElNotification } from 'element-plus'
 import $curl from '$elpisCommon/curl'
 import TableItemConfig from './table-item-config'
@@ -255,6 +258,9 @@ const operationWidth = computed( () => {
   }, 50) : 50
 })
 
+// 表格引用
+const tableRef = ref(null);
+
 // 表格数据
 const loading = ref(false); // 表格加载状态
 const tableData = ref([]); // 表格数据
@@ -345,8 +351,54 @@ const fetchTableData = async () => {
     total.value = 0;
     return;
   }
+
   tableData.value = buildTableData(res.data);
   total.value = res.metadata.total;
+
+  // 修复复选框全选按钮异常选中的 Bug
+  // 问题根源：Element Plus 的全选按钮渲染状态未正确更新
+  // 解决方案：在数据加载后强制清除选中状态并直接操作 DOM
+  nextTick(() => {
+    if (tableRef.value) {
+      tableRef.value.clearSelection();
+
+      // 强制重置内部状态
+      if (tableRef.value.store && tableRef.value.store.states) {
+        tableRef.value.store.states._isAllSelected = false;
+      }
+
+      // 直接操作 DOM：找到全选复选框并强制取消选中
+      nextTick(() => {
+        const tableEl = tableRef.value?.$el;
+        if (!tableEl) return;
+
+        // 尝试多种选择器，确保能找到全选复选框
+        let headerCheckbox = tableEl.querySelector('.el-table__header-wrapper .el-checkbox__input');
+
+        if (!headerCheckbox) {
+          headerCheckbox = tableEl.querySelector('.el-table__header .el-table-column--selection .el-checkbox__input');
+        }
+
+        if (!headerCheckbox) {
+          const allCheckboxes = tableEl.querySelectorAll('.el-checkbox__input');
+          if (allCheckboxes.length > 0) {
+            headerCheckbox = allCheckboxes[0];
+          }
+        }
+
+        if (headerCheckbox) {
+          headerCheckbox.classList.remove('is-checked');
+          headerCheckbox.classList.remove('is-indeterminate');
+
+          const checkboxInput = headerCheckbox.querySelector('input[type="checkbox"]');
+          if (checkboxInput) {
+            checkboxInput.checked = false;
+            checkboxInput.indeterminate = false;
+          }
+        }
+      });
+    }
+  });
 }
 
 /**
@@ -400,6 +452,9 @@ const operationHandler = ( { btnConfig, rowData }) => {
   emit('operate', { btnConfig, rowData });
 }
 
+// 提供 operationHandler 给子组件（如 audit-status-button）
+provide('operationHandler', operationHandler)
+
 /**
  * 处理每页显示条目数变化
  * @param {number} value - 新的每页条目数
@@ -442,6 +497,38 @@ const handleSortChange = async ({ column, prop, order }) => {
 }
 
 /**
+ * 获取表格行的唯一标识
+ * 用于 Element Plus 表格的 row-key 属性
+ *
+ * @param {Object} row - 表格行数据
+ * @returns {string|number} 行的唯一标识
+ */
+const getRowKey = (row) => {
+  // 自动检测常见的 ID 字段（按优先级）
+  // ⚠️ 注意：sku_id 必须在 product_id 之前，因为库存预警等页面显示的是 SKU 数据
+  // 如果 sku_id 在 product_id 之后，同一商品的多个 SKU 会有相同的 product_id，导致 key 重复
+  const commonIdFields = [
+    'sku_id',        // ✅ SKU ID 优先级最高（库存预警页面）
+    'product_id',    // 商品 ID
+    'id',            // 通用 ID
+    'category_id',   // 分类 ID
+    'brand_id',      // 品牌 ID
+    'user_id',       // 用户 ID
+    'order_id'       // 订单 ID
+  ];
+
+  for (const field of commonIdFields) {
+    if (row[field] !== undefined && row[field] !== null) {
+      return row[field];
+    }
+  }
+
+  // 如果都没有，返回行数据的索引（不推荐，但作为后备方案）
+  console.warn('[getRowKey] 未找到合适的唯一标识字段，使用对象引用作为 key');
+  return row;
+}
+
+/**
  * 获取表格列组件
  * 根据 comType 从 TableItemConfig 中获取对应的组件
  *
@@ -459,9 +546,32 @@ const getColumnComponent = (comType) => {
  * @param {Array} selection - 当前选中的行数据数组
  */
 const handleSelectionChange = (selection) => {
-  console.log('表格选中项变化:', selection)
   selectedRows.value = selection
   emit('selection-change', selection)
+
+  // 修复全选按钮异常显示的 Bug
+  // 当选中行数不等于总行数时，强制移除全选按钮的选中状态
+  if (selection.length > 0 && selection.length < tableData.value.length) {
+    nextTick(() => {
+      const tableEl = tableRef.value?.$el;
+      if (!tableEl) return;
+
+      const headerCheckbox = tableEl.querySelector('.el-table__header-wrapper .el-checkbox__input') ||
+                            tableEl.querySelector('.el-table__header .el-table-column--selection .el-checkbox__input') ||
+                            tableEl.querySelectorAll('.el-checkbox__input')[0];
+
+      if (headerCheckbox) {
+        headerCheckbox.classList.remove('is-checked');
+        headerCheckbox.classList.remove('is-indeterminate');
+
+        const checkboxInput = headerCheckbox.querySelector('input[type="checkbox"]');
+        if (checkboxInput) {
+          checkboxInput.checked = false;
+          checkboxInput.indeterminate = false;
+        }
+      }
+    });
+  }
 }
 
 /**

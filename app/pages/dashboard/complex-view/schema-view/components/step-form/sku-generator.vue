@@ -76,11 +76,12 @@
     <!-- SKU列表 -->
     <el-divider content-position="left">SKU列表 ({{ skuList.length }})</el-divider>
     
-    <el-table 
+    <el-table
       v-if="skuList.length > 0"
-      :data="skuList" 
+      :data="skuList"
       border
       class="sku-table"
+      :max-height="500"
     >
       <!-- 属性列（动态生成） -->
       <el-table-column
@@ -91,7 +92,7 @@
         width="100"
       />
       
-      <el-table-column label="销售价格" width="120">
+      <el-table-column label="销售价格" width="140">
         <template #default="scope">
           <el-input-number
             v-model="scope.row.price"
@@ -102,8 +103,8 @@
           />
         </template>
       </el-table-column>
-      
-      <el-table-column label="促销价格" width="120">
+
+      <el-table-column label="促销价格" width="140">
         <template #default="scope">
           <el-input-number
             v-model="scope.row.promotion_price"
@@ -114,8 +115,8 @@
           />
         </template>
       </el-table-column>
-      
-      <el-table-column label="商品库存" width="120">
+
+      <el-table-column label="商品库存" width="140">
         <template #default="scope">
           <el-input-number
             v-model="scope.row.inventory"
@@ -125,8 +126,8 @@
           />
         </template>
       </el-table-column>
-      
-      <el-table-column label="库存预警值" width="120">
+
+      <el-table-column label="库存预警值" width="140">
         <template #default="scope">
           <el-input-number
             v-model="scope.row.stock_alert"
@@ -136,8 +137,8 @@
           />
         </template>
       </el-table-column>
-      
-      <el-table-column label="SKU编号" width="180">
+
+      <el-table-column label="SKU编号" width="200">
         <template #default="scope">
           <el-input
             v-model="scope.row.sku_code"
@@ -611,6 +612,18 @@ defineExpose({
   
   .sku-table {
     margin-bottom: 15px;
+
+    :deep(.el-table__cell) {
+      padding: 12px 8px;
+    }
+
+    :deep(.el-input-number) {
+      width: 100%;
+    }
+
+    :deep(.el-input) {
+      width: 100%;
+    }
   }
   
   .batch-operations {

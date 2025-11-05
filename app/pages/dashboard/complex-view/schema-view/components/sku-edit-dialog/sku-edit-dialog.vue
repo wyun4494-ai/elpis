@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     :title="dialogTitle"
-    width="750px"
+    width="70%"
     :before-close="handleClose"
   >
     <div class="sku-edit-container">
@@ -32,7 +32,7 @@
         border
         size="small"
         class="sku-table"
-        max-height="400"
+        max-height="500"
       >
         <!-- SKU编号 -->
         <el-table-column

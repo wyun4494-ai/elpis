@@ -29,7 +29,7 @@
       <el-drawer
         v-model="showAttributeDrawer"
         :title="title"
-        size="80%"
+        size="90%"
         append-to-body
         :before-close="handleAttributeDrawerClose"
       >
@@ -491,10 +491,10 @@ const handleSubmit = async () => {
       method: isEditMode.value ? 'put' : 'post',
       url: api.value,
       data: submitData,
-      successMessage: isEditMode.value ? '更新成功' : '添加成功',
+      successMessage: isEditMode.value ? '商品修改成功' : '商品创建成功',
       errorMessage: isEditMode.value ? '更新失败' : '添加失败'
     })
-    
+
     if (res && res.success) {
       visible.value = false
       showAttributeDrawer.value = false
@@ -544,6 +544,7 @@ defineExpose({
   
   .sku-config-card {
     margin-bottom: 20px;
+    min-height: 600px;
   }
   
   .param-config-card {

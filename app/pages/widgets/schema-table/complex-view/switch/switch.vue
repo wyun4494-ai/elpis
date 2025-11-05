@@ -49,18 +49,27 @@ const handleChange = async (value) => {
   if (!isMounted.value || value === initialValue.value) {
     return
   }
-  
-  // 检查：总库存为0时不能上架
+
   const activeValue = props.schema.option?.activeValue ?? 1
+
+  // 检查：总库存为0时不能上架
   if (value === activeValue && props.rowData.inventory === 0) {
     ElMessage.error('总库存为0，不能上架')
     // 恢复到原来的状态
     currentValue.value = props.modelValue
     return
   }
-  
+
+  // 检查：未审核的商品不能上架
+  if (value === activeValue && props.rowData.audit_status !== 1) {
+    ElMessage.error('商品未审核通过，不能上架')
+    // 恢复到原来的状态
+    currentValue.value = props.modelValue
+    return
+  }
+
   loading.value = true
-  
+
   try {
     // 触发更新事件
     emit('update:modelValue', value)

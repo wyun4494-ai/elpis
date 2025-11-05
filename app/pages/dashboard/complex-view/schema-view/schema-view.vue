@@ -88,7 +88,7 @@ const onTableOperate = ({ btnConfig, rowData, selectedRows }) => {
 
 // 显示组件
 function showComponent({ btnConfig, rowData }) {
-  const { comName } = btnConfig.eventOption;
+  const { comName, mode } = btnConfig.eventOption;
   if(!comName) {
     console.error('请配置组件名称');
     return
@@ -99,8 +99,13 @@ function showComponent({ btnConfig, rowData }) {
     console.error('配置不正确');
     return
   };
-  
-  comRef.show(rowData);
+
+  // 如果配置了 mode 参数，传递给组件的 show 方法
+  if (mode) {
+    comRef.show(rowData, mode);
+  } else {
+    comRef.show(rowData);
+  }
 }
 
 // 查看子分类
