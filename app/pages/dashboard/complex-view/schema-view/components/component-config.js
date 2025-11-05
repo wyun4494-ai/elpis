@@ -12,6 +12,7 @@ import batchRestoreDialog from "./batch-restore-dialog/batch-restore-dialog.vue"
 import batchPermanentDeleteDialog from "./batch-permanent-delete-dialog/batch-permanent-delete-dialog.vue"
 import skuEditDialog from "./sku-edit-dialog/sku-edit-dialog.vue"
 import auditDetailDialog from "./audit-detail-dialog/audit-detail-dialog.vue"
+import batchAuditDialog from "./batch-audit-dialog/batch-audit-dialog.vue"
 
 // 业务扩展 component 配置
 import BusinessComponentConfig from '$businessComponentConfig'
@@ -58,6 +59,9 @@ const componentConfig = {
   },
   auditDetailDialog: {
     component: auditDetailDialog
+  },
+  batchAuditDialog: {
+    component: batchAuditDialog
   }
 }
 

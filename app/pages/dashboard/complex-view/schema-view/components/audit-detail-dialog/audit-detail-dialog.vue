@@ -53,10 +53,25 @@
               {{ getAuditStatusText(productDetail.audit_status) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">
+          <el-descriptions-item label="创建时间">
             {{ productDetail.create_time }}
           </el-descriptions-item>
+          <el-descriptions-item label="更新时间">
+            {{ productDetail.update_time }}
+          </el-descriptions-item>
         </el-descriptions>
+
+        <!-- 商品详情 -->
+        <div v-if="productDetail.product_detail" style="margin-top: 20px;">
+          <div style="font-weight: bold; margin-bottom: 10px;">商品详情：</div>
+          <!-- 使用 v-html 渲染富文本内容，已使用 DOMPurify 过滤 HTML，防止 XSS 攻击 -->
+          <!-- eslint-disable vue/no-v-html -->
+          <div
+            class="product-detail-content"
+            v-html="sanitizeHtml(productDetail.product_detail)"
+          />
+          <!-- eslint-enable vue/no-v-html -->
+        </div>
       </el-tab-pane>
 
       <!-- SKU 列表 -->
@@ -181,6 +196,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import $curl from '$elpisCommon/curl.js'
+import DOMPurify from 'dompurify'
 
 const emit = defineEmits(['command'])
 
@@ -440,6 +456,22 @@ const formatFieldValue = (fieldName, value) => {
   return value
 }
 
+/**
+ * 使用 DOMPurify 过滤 HTML 内容，防止 XSS 攻击
+ * @param {string} html - 原始 HTML 字符串
+ * @returns {string} 过滤后的安全 HTML 字符串
+ */
+const sanitizeHtml = (html) => {
+  if (!html) {
+    return '暂无内容'
+  }
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div', 'pre'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'target', 'rel', 'style', 'class', 'width', 'height', 'align', 'colspan', 'rowspan'],
+    ALLOW_DATA_ATTR: false
+  })
+}
+
 defineExpose({
   show,
   name
@@ -451,6 +483,58 @@ defineExpose({
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* 商品详情富文本样式 */
+.product-detail-content {
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  line-height: 1.8;
+  color: #606266;
+}
+
+.product-detail-content :deep(p) {
+  margin: 10px 0;
+}
+
+.product-detail-content :deep(h1),
+.product-detail-content :deep(h2),
+.product-detail-content :deep(h3) {
+  margin: 15px 0 10px;
+  font-weight: bold;
+}
+
+.product-detail-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.product-detail-content :deep(ul),
+.product-detail-content :deep(ol) {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.product-detail-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.product-detail-content :deep(table th),
+.product-detail-content :deep(table td) {
+  border: 1px solid #dcdfe6;
+  padding: 8px;
+  text-align: left;
+}
+
+.product-detail-content :deep(table th) {
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 </style>
 

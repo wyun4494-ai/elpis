@@ -649,17 +649,15 @@ const props = defineProps({
     type: String,
     required: true
   },
-  modelValue: {
+  // Schema 配置
+  schema: {
+    type: Object,
+    default: () => ({})
+  },
+  // 输入值（用于数据回显）- 与其他表单组件保持一致，使用 model 而不是 modelValue
+  model: {
     type: String,
     default: ''
-  },
-  placeholder: {
-    type: String,
-    default: '请输入内容...'
-  },
-  disabled: {
-    type: Boolean,
-    default: false
   }
 })
 
@@ -777,9 +775,19 @@ const imageCount = computed(() => {
 })
 
 // 初始化编辑器
+// 从 schema.option 中提取配置
+const placeholder = computed(() => {
+  return props.schema?.option?.placeholder || '请输入内容...'
+})
+
+const disabled = computed(() => {
+  return props.schema?.option?.disabled || false
+})
+
+// 初始化编辑器
 const editor = useEditor({
-  content: props.modelValue,
-  editable: !props.disabled,
+  content: props.model,
+  editable: !disabled.value,
   extensions: [
     // StarterKit 在 v3 版本中已包含 Link 和 Underline 扩展
     // 需要禁用它们以避免重复注册警告
@@ -825,7 +833,7 @@ const editor = useEditor({
       allowBase64: true
     }),
     Placeholder.configure({
-      placeholder: props.placeholder
+      placeholder: placeholder.value
     })
   ],
   onUpdate: ({ editor }) => {
@@ -837,8 +845,8 @@ const editor = useEditor({
   }
 })
 
-// 监听外部值变化
-watch(() => props.modelValue, (newValue) => {
+// 监听外部值变化（model prop）
+watch(() => props.model, (newValue) => {
   if (editor.value) {
     const currentValue = editor.value.getHTML()
     if (newValue !== currentValue) {
@@ -848,7 +856,7 @@ watch(() => props.modelValue, (newValue) => {
 })
 
 // 监听禁用状态
-watch(() => props.disabled, (newValue) => {
+watch(() => disabled.value, (newValue) => {
   if (editor.value) {
     editor.value.setEditable(!newValue)
   }

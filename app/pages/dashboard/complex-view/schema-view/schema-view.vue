@@ -72,7 +72,9 @@ const eventHandlerMap = {
   batchPermanentDelete: batchPermanentDelete,
   batchShelfOn: batchShelfOn,
   batchShelfOff: batchShelfOff,
-  batchDelete: batchDelete
+  batchDelete: batchDelete,
+  batchApprove: batchApprove,
+  batchReject: batchReject
 }
 
 // 表格操作
@@ -189,6 +191,52 @@ function batchPermanentDelete({ btnConfig, selectedRows }) {
   }
 
   comRef.show(selectedRows);
+}
+
+/**
+ * 批量审核通过
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Array} params.selectedRows - 选中的行数据
+ */
+function batchApprove({ btnConfig, selectedRows }) {
+  // 1. 检查是否选中了数据
+  if (!selectedRows || selectedRows.length === 0) {
+    console.warn('未选中任何数据');
+    return;
+  }
+
+  // 2. 显示批量审核对话框
+  const comRef = comListRef.value.find(item => item.name === 'batchAuditDialog');
+  if (!comRef || typeof comRef.show !== 'function') {
+    console.error('批量审核对话框组件未找到');
+    return;
+  }
+
+  comRef.show(selectedRows, 'approve');
+}
+
+/**
+ * 批量审核拒绝
+ * @param {Object} params - 参数对象
+ * @param {Object} params.btnConfig - 按钮配置
+ * @param {Array} params.selectedRows - 选中的行数据
+ */
+function batchReject({ btnConfig, selectedRows }) {
+  // 1. 检查是否选中了数据
+  if (!selectedRows || selectedRows.length === 0) {
+    console.warn('未选中任何数据');
+    return;
+  }
+
+  // 2. 显示批量审核对话框
+  const comRef = comListRef.value.find(item => item.name === 'batchAuditDialog');
+  if (!comRef || typeof comRef.show !== 'function') {
+    console.error('批量审核对话框组件未找到');
+    return;
+  }
+
+  comRef.show(selectedRows, 'reject');
 }
 
 /**

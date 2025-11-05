@@ -64,7 +64,6 @@ const eventHandlerMap = {
  * @param {Array} selection - 选中的行数据数组
  */
 const handleSelectionChange = (selection) => {
-  console.log('Table Panel - 选中项变化:', selection)
   emit('selection-change', selection)
 }
 
