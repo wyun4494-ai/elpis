@@ -82,7 +82,7 @@ module.exports = {
       require(`${app.businessPath}${sep}middleware.js`)(app);
       console.log(`-- [start] load business middleware done --`);
     } catch (e) {
-      console.log(`-- [exception] there is no business middleware file --`);  
+      console.log(`-- [exception] there is no business middleware file ${e.message} --`);  
     }
 
     // 加载路由
