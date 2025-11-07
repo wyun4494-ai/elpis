@@ -37,12 +37,14 @@ function handleFile(file, entries = {}, htmlWebpackPluginList = []) {
   htmlWebpackPluginList.push(
     // html-webpack-plugin 辅助注入打包后的 bundle 文件到 tpl中
     new HtmlWebpackPlugin({
-    // 模板文件路径  
+    // 模板文件路径
     filename: path.resolve(process.cwd(), './app/public/dist',`${entryName}.tpl`),
     // 指定要使用的模板文件
     template: path.resolve(__dirname, '../../view/entry.tpl'),
-    // 要注入的代码块  
-    chunks:[ `${entryName}`]
+    // 要注入的代码块
+    chunks:[ `${entryName}`],
+    // 默认注入到 body 底部
+    inject: true
     })
   )
 }
@@ -71,7 +73,12 @@ module.exports = merge.smart({
     rules: [{
       test: /\.vue$/,
       use: {
-        loader: 'vue-loader'
+        loader: 'vue-loader',
+        options: {
+          compilerOptions: {
+            whitespace: 'preserve'
+          }
+        }
       }
     }, {
       test: /\.js$/,
@@ -120,16 +127,27 @@ module.exports = merge.smart({
       use: [{
         loader: 'style-loader'
       }, {
-        loader: 'css-loader'
+        loader: 'css-loader',
+        options: {
+          esModule: false,
+          sourceMap: false
+        }
       }]
     }, {
       test: /\.less$/,
       use: [{
         loader: 'style-loader'
       }, {
-        loader: 'css-loader'
+        loader: 'css-loader',
+        options: {
+          esModule: false,
+          sourceMap: false
+        }
       }, {
-        loader: 'less-loader'
+        loader: 'less-loader',
+        options: {
+          sourceMap: false
+        }
       }]
     }, {
       test: /\.[eot|svg|ttf|woff|woff2]$/,

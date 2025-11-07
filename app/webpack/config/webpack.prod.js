@@ -1,4 +1,4 @@
-const  merge  = require('webpack-merge')
+const merge = require('webpack-merge')
 const path = require('path')
 const os = require('os')
 const HappyPack = require('happypack')
@@ -26,7 +26,7 @@ const happypackCommonConfig = {
 const baseConfig = require('./webpack.base.js')
 
 // 生产环境配置
-const webpackProdConfig = merge(baseConfig, {
+const webpackProdConfig = merge.smart(baseConfig, {
   mode: 'production',
 
   output: {
