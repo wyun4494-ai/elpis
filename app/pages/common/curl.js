@@ -47,6 +47,15 @@ const curl = ({
   }
 
   return axios.request(ajaxSetting).then((response) => {
+    // 令牌轮换：检查响应头中是否有新 Token
+    const newToken = response.headers['x-new-token']
+    if (newToken) {
+      // 注意：由于后端使用 HttpOnly Cookie，前端无法直接读取或修改
+      // 新 Token 已经由后端通过 Set-Cookie 响应头自动更新到 Cookie 中
+      // 这里只是记录日志，实际不需要前端操作
+      console.log('Token 已轮换（由后端自动更新到 Cookie）')
+    }
+
     const resData = response.data
 
     // 后端API返回格式
