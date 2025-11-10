@@ -30,8 +30,24 @@ const curl = ({
     s_sign: signature,
   }
 
-  if(url.indexOf('/api/proj/') > -1 && window.projKey && window.projKey !== 'undefined') {
+  // 不需要 proj_key 的接口白名单
+  const noProjectKeyApis = [
+    '/api/proj/auth/login',
+    '/api/proj/auth/register',
+    '/api/proj/auth/logout',
+    '/api/proj/auth/user-info',
+    '/api/proj/user/menu',
+    '/api/proj/user/project-list',
+    '/api/proj/user/check-project-permission'
+  ]
 
+  // 只有当 URL 包含 /api/proj/ 且不在白名单中时，才添加 proj_key
+  const shouldAddProjKey = url.indexOf('/api/proj/') > -1 &&
+                           !noProjectKeyApis.includes(url) &&
+                           window.projKey &&
+                           window.projKey !== 'undefined'
+
+  if(shouldAddProjKey) {
     dotHeaders.proj_key = window.projKey
   }
 

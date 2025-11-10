@@ -23,16 +23,16 @@ const props = defineProps({
 const formattedText = computed(() => {
   const value = props.modelValue
   const formatter = props.schema?.option?.formatter
-  
+
   if (formatter && typeof formatter === 'function') {
     return formatter(value, props.rowData)
   }
-  
+
   // 默认格式化规则
   if (value === null || value === undefined) {
     return '-'
   }
-  
+
   // 布尔值或 1/0 转换
   if (typeof value === 'number' && (value === 0 || value === 1)) {
     // 检查是否是 switch 类型的字段
@@ -40,12 +40,12 @@ const formattedText = computed(() => {
       return value === 1 ? '是' : '否'
     }
   }
-  
+
   // 数组转逗号分隔
   if (Array.isArray(value)) {
     return value.join(', ')
   }
-  
+
   return value
 })
 </script>

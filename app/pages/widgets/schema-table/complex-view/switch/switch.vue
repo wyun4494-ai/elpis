@@ -1,6 +1,7 @@
 <template>
   <div class="table-switch-wrapper">
-    <span class="switch-label">上架:</span>
+    <!-- 只有当 showLabel 为 true 时才显示标签 -->
+    <span v-if="schema.option?.showLabel !== false" class="switch-label">{{ schema.option?.label || '上架:' }}</span>
     <el-switch
       v-model="currentValue"
       :active-value="schema.option?.activeValue ?? 1"

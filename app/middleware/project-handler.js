@@ -11,7 +11,11 @@ module.exports = (app) => {
   const whiteList = [
     '/api/proj/auth/login',
     '/api/proj/auth/register',
-    '/api/proj/auth/logout'
+    '/api/proj/auth/logout',
+    '/api/proj/auth/user-info',
+    '/api/proj/user/menu',  // 获取用户菜单权限列表
+    '/api/proj/user/project-list',  // 获取用户有权限访问的项目列表
+    '/api/proj/user/check-project-permission'  // 检查用户是否有权限访问项目
   ]
 
   return async (ctx, next) => {

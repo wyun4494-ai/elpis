@@ -32,13 +32,19 @@ module.exports = (app) => {
      */
     async getProjectList({ projectKey }) {
      return  modelList.reduce((preList, modelItem) => {
-        const { project } = modelItem;
-        
+        const { project, model } = modelItem;
+        const modelKey = model?.key;
+
         // 如果有传 projectKey，但项目里面没有这个 projectKey，则返回
         if (projectKey && !project[projectKey]) return preList;
 
         for(const projKey in project) {
-          preList.push(project[projKey]);
+          const projConfig = project[projKey];
+          // 确保 modelKey 被正确设置
+          if (modelKey && !projConfig.modelKey) {
+            projConfig.modelKey = modelKey;
+          }
+          preList.push(projConfig);
         }
         return preList;
       }, [])

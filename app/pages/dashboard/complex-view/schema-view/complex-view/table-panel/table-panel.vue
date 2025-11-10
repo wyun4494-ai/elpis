@@ -114,13 +114,27 @@ function removeData({ btnConfig, rowData })  {
     }
   ).then( async ({ value }) => {
     schemaTableRef.value.showLoading()
+
+    // 构建请求数据，包含权限验证所需的参数
+    const requestData = {
+      delete_reason: value  // 添加删除原因
+    }
+
+    // 添加权限验证参数
+    if (route.query.key) {
+      requestData.menu_key = route.query.key
+    }
+    if (route.query.proj_key) {
+      requestData.proj_key = route.query.proj_key
+    }
+
+    // 构建删除 URL：将主键值添加到 URL 路径中
+    const deleteUrl = `${api.value}/${removeValue}`
+
     const res = await $curl({
       method: 'delete',
-      url: api.value,
-      data: {
-        [removeKey]: removeValue,
-        delete_reason: value  // 添加删除原因
-      },
+      url: deleteUrl,
+      data: requestData,
       errorMessage: '删除失败'
     })
     schemaTableRef.value.hideLoading()

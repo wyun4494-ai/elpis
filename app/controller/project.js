@@ -71,15 +71,15 @@ module.exports = (app) => {
       // 构造返回结果，只返回关键数据
       const dtoModelList = modelList.reduce((preList, item) => {
         const  { model, project } = item
-        
+
         // 构造 model 关键数据
         const {key, name, desc} = model
         const dtoModel = {key, name, desc}
 
         // 构造 project 关键数据
         const dtoProject = Object.keys(project).reduce((pre, projKey) => {
-          const {key, name, desc, homePage} = project[projKey]
-          pre[projKey] = {key, name, desc, homePage}
+          const {key, name, desc, homePage, modelKey} = project[projKey]
+          pre[projKey] = {key, name, desc, homePage, modelKey}
           return pre
         }, {})
 

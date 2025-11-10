@@ -76,11 +76,6 @@ const tagType = computed(() => {
 
 // 点击按钮
 const handleClick = () => {
-  console.log('Audit status button clicked:', {
-    auditStatus: auditStatus.value,
-    rowData: props.rowData
-  })
-
   if (operationHandler && typeof operationHandler === 'function') {
     // 使用与行按钮相同的事件处理方式
     operationHandler({
@@ -93,8 +88,6 @@ const handleClick = () => {
       },
       rowData: props.rowData
     })
-  } else {
-    console.error('operationHandler not found')
   }
 }
 </script>

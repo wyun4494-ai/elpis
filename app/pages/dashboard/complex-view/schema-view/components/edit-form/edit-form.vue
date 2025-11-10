@@ -31,10 +31,12 @@
 
 <script setup>
 import { ref, inject, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import schemaForm from '$elpisWidgets/schema-form/schema-form.vue';
 import $curl from '$elpisCommon/curl.js'
 import { ElNotification } from 'element-plus';
 
+const route = useRoute();
 const {
   api,
   components
@@ -80,12 +82,28 @@ const fetchFormData = async () => {
    if(loading.value) return
 
   loading.value = true
+
+  // 构建请求参数，包含权限验证所需的参数
+  const requestParams = {}
+
+  // 添加权限验证参数
+  if (route.query.key) {
+    requestParams.menu_key = route.query.key
+  }
+  if (route.query.proj_key) {
+    requestParams.proj_key = route.query.proj_key
+  }
+
+  // 构建 URL：如果主键值存在，则添加到 URL 路径中
+  let url = api.value
+  if (mainValue.value) {
+    url = `${api.value}/${mainValue.value}`
+  }
+
   const res = await $curl({
     method: 'get',
-    url: api.value,
-    params: {
-      [mainKey.value]: mainValue.value
-    }
+    url: url,
+    params: requestParams
   })
   loading.value = false
 
@@ -97,7 +115,7 @@ const fetchFormData = async () => {
     })
     return // 添加return防止继续执行
   }
-  
+
   // 确保res.data是对象类型，如果是数字则包装成对象
   if (typeof res.data === 'object' && res.data !== null) {
     dotModel.value = res.data
@@ -118,13 +136,25 @@ const save = async () => {
   }
 
   loading.value = true
+
+  // 构建请求数据，包含权限验证所需的参数
+  const requestData = {
+    [mainKey.value]: mainValue.value,
+    ...schemaFormRef.value.getValue()
+  }
+
+  // 添加权限验证参数
+  if (route.query.key) {
+    requestData.menu_key = route.query.key
+  }
+  if (route.query.proj_key) {
+    requestData.proj_key = route.query.proj_key
+  }
+
   const res = await $curl({
     method: 'put',
     url: api.value,
-    data: {
-      [mainKey.value]: mainValue.value,
-      ...schemaFormRef.value.getValue()
-    }
+    data: requestData
   })
   loading.value = false
   if(!res || !res.success) {

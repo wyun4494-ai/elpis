@@ -30,9 +30,12 @@
 
 <script setup>
 import { inject, ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import schemaForm from '$elpisWidgets/schema-form/schema-form.vue';
 import $curl from '$elpisCommon/curl.js'
 import { ElNotification } from 'element-plus';
+
+const route = useRoute();
 const {
   api,
   components
@@ -80,12 +83,24 @@ const save = async () => {
   }
 
   loading.value = true
+
+  // 构建请求参数，包含权限验证所需的参数
+  const requestParams = {
+    ...schemaFormRef.value.getValue()
+  }
+
+  // 添加权限验证参数
+  if (route.query.key) {
+    requestParams.menu_key = route.query.key
+  }
+  if (route.query.proj_key) {
+    requestParams.proj_key = route.query.proj_key
+  }
+
   const res = await $curl({
     method: 'post',
     url: api.value,
-    data: {
-      ...schemaFormRef.value.getValue()
-    }
+    data: requestParams
   })
   loading.value = false
   if(!res || !res.success) {

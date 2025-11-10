@@ -22,12 +22,6 @@ module.exports = (app) => {
     const {body, query, headers} = ctx.request;  // 请求体、查询参数、请求头
     const {params, path, method} = ctx;         // 路径参数、请求路径、请求方法
 
-    // 记录请求信息到日志，便于调试和监控
-    app.logger.info(`[${method} ${path}] body: ${JSON.stringify(body)}]`)
-    app.logger.info(`[${method} ${path}] query: ${JSON.stringify(query)}]`)
-    app.logger.info(`[${method} ${path}] params: ${JSON.stringify(params)}]`)
-    app.logger.info(`[${method} ${path}] headers: ${JSON.stringify(headers)}]`)
-
     // 从应用的路由Schema配置中获取当前路径和方法对应的参数验证规则
     const schema = app.routerSchema[path]?.[method.toLowerCase()]
 

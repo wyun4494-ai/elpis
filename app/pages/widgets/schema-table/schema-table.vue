@@ -2,12 +2,13 @@
   <div class="search-panel">
     <!-- 表格  -->
     <el-table
-      ref="tableRef"
       v-if="schema && schema.properties"
+      ref="tableRef"
       v-loading="loading"
       class="table"
       :data="tableData"
       :row-key="getRowKey"
+      fit
       @selection-change="handleSelectionChange"
       @sort-change="handleSortChange"
     >
@@ -297,8 +298,8 @@ watch([api, schema, apiParams], () => {
 const initData = () => {
   currentPage.value = 1;
   pageSize.value = 50;
-  nextTick( async () => {
-    await loadTableData();
+  nextTick(() => {
+    loadTableData();
   });
 }
 
@@ -336,6 +337,9 @@ const fetchTableData = async () => {
     requestParams.sort_field = sortField.value;
     requestParams.sort_order = sortOrder.value === 'ascending' ? 'asc' : 'desc';
   }
+
+  // 注意：列表接口不需要权限验证参数
+  // 权限验证只在创建、编辑、删除等修改操作时进行
 
   // 调用 API 获取数据
   const res = await $curl({
@@ -459,28 +463,27 @@ provide('operationHandler', operationHandler)
  * 处理每页显示条目数变化
  * @param {number} value - 新的每页条目数
  */
-const onPageSizeChange = async (value) => {
+const onPageSizeChange = (value) => {
   pageSize.value = value
-  await loadTableData();
+  loadTableData();
 }
 
 /**
  * 处理当前页码变化
  * @param {number} value - 新的页码
  */
-const onCurrentPageChange = async (value) => {
+const onCurrentPageChange = (value) => {
   currentPage.value = value
-  await loadTableData();
+  loadTableData();
 }
 
 /**
  * 处理表格排序变化
  * @param {Object} sortInfo - 排序信息
- * @param {string} sortInfo.column - 排序列对象
  * @param {string} sortInfo.prop - 排序字段名
  * @param {string} sortInfo.order - 排序方向（ascending/descending/null）
  */
-const handleSortChange = async ({ column, prop, order }) => {
+const handleSortChange = ({ prop, order }) => {
   // 更新排序状态
   if (order) {
     sortField.value = prop;
@@ -493,7 +496,7 @@ const handleSortChange = async ({ column, prop, order }) => {
 
   // 重新加载数据（排序后回到第一页）
   currentPage.value = 1;
-  await loadTableData();
+  loadTableData();
 }
 
 /**
@@ -504,16 +507,22 @@ const handleSortChange = async ({ column, prop, order }) => {
  * @returns {string|number} 行的唯一标识
  */
 const getRowKey = (row) => {
-  // 自动检测常见的 ID 字段（按优先级）
+  // 1. 优先使用 schema.primaryKey（如果在 schemaConfig 中配置了）
+  if (schema.value.primaryKey && row[schema.value.primaryKey] !== undefined && row[schema.value.primaryKey] !== null) {
+    return row[schema.value.primaryKey];
+  }
+
+  // 2. 自动检测常见的 ID 字段（按优先级）
   // ⚠️ 注意：sku_id 必须在 product_id 之前，因为库存预警等页面显示的是 SKU 数据
   // 如果 sku_id 在 product_id 之后，同一商品的多个 SKU 会有相同的 product_id，导致 key 重复
   const commonIdFields = [
     'sku_id',        // ✅ SKU ID 优先级最高（库存预警页面）
     'product_id',    // 商品 ID
+    'role_id',       // 角色 ID
+    'user_id',       // 用户 ID
     'id',            // 通用 ID
     'category_id',   // 分类 ID
     'brand_id',      // 品牌 ID
-    'user_id',       // 用户 ID
     'order_id'       // 订单 ID
   ];
 
@@ -523,7 +532,7 @@ const getRowKey = (row) => {
     }
   }
 
-  // 如果都没有，返回行数据的索引（不推荐，但作为后备方案）
+  // 3. 如果都没有，返回行数据的索引（不推荐，但作为后备方案）
   console.warn('[getRowKey] 未找到合适的唯一标识字段，使用对象引用作为 key');
   return row;
 }
@@ -638,10 +647,22 @@ const handleBatchOperation = async () => {
  * @param {Object} rowData - 行数据
  */
 const handleColumnChange = async (key, value, rowData) => {
-  // 1. 获取主键字段名（从 schema 中查找第一个有 tableOption 的字段作为主键）
-  const primaryKey = Object.keys(schema.value.properties).find(k =>
-    schema.value.properties[k].tableOption
-  ) || 'product_id';
+  // 1. 获取主键字段名
+  // 优先级：schema.primaryKey > 自动检测 > 默认值
+  let primaryKey = schema.value.primaryKey;
+
+  if (!primaryKey) {
+    // 自动检测：查找第一个有 tableOption 的字段作为主键
+    primaryKey = Object.keys(schema.value.properties).find(k =>
+      schema.value.properties[k].tableOption
+    );
+  }
+
+  if (!primaryKey) {
+    // 最后的备选方案：使用常见的 ID 字段
+    const commonIdFields = ['sku_id', 'product_id', 'role_id', 'user_id', 'id', 'category_id', 'brand_id', 'order_id'];
+    primaryKey = commonIdFields.find(field => rowData && rowData[field] !== undefined);
+  }
 
   // 2. 检查 rowData 是否有主键
   if (!rowData || !rowData[primaryKey]) {
@@ -656,29 +677,32 @@ const handleColumnChange = async (key, value, rowData) => {
       [key]: value
     };
 
-    // 4. 调用更新 API
+    // 4. 构建更新 URL（拼接主键到 URL 路径）
+    const updateUrl = `${api.value}/${rowData[primaryKey]}`;
+
+    // 5. 调用更新 API
     const res = await $curl({
       method: 'put',
-      url: api.value,
+      url: updateUrl,
       data: updateData,
       successMessage: '更新成功',
       errorMessage: '更新失败'
     })
 
     if (res && res.success) {
-      // 5. 更新成功：更新本地数据
+      // 6. 更新成功：更新本地数据
       const rowIndex = tableData.value.findIndex(row => row[primaryKey] === rowData[primaryKey])
       if (rowIndex !== -1) {
         tableData.value[rowIndex][key] = value
       }
     } else {
       // 更新失败：刷新表格恢复数据
-      await loadTableData()
+      loadTableData()
     }
   } catch (error) {
     console.error('Column update error:', error)
     // 发生错误时刷新表格恢复数据
-    await loadTableData()
+    loadTableData()
   }
 }
 
@@ -703,9 +727,11 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: auto;
+  width: 100%;
 
   .table{
     flex: 1;
+    width: 100%;
   }
   .pagination{
     margin: 10px 0;
@@ -718,4 +744,29 @@ defineExpose({
   }
 }
 
+</style>
+
+<style lang="less">
+/* 修复表格列头排序按钮对齐 */
+.el-table__header-wrapper .el-table__cell .cell {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.el-table__column-header-button {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.el-table__column-sorter {
+  display: inline-flex;
+  align-items: center;
+}
+
+.caret-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
 </style>

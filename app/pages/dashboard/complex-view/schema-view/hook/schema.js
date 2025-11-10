@@ -52,9 +52,13 @@ export const useSchema = function() {
     searchConfig.value = undefined
     searchSchema.value = {}
     components.value = {}
-  
+
     // 构造 tableSchema 和 tableConfig
     tableSchema.value = buildDtoSchema(configSchema, 'table')
+    // 将 primaryKey 添加到 tableSchema 中
+    if (sConfig.primaryKey) {
+      tableSchema.value.primaryKey = sConfig.primaryKey
+    }
     tableConfig.value = sConfig.tableConfig ?? {}
 
     // 构造 searchSchema 和 searchConfig
@@ -103,7 +107,7 @@ const resetSchemaData = function() {
     }
 
     // 提取有效 schema 字段信息
-    // 循环遍历每个properties字段属性 
+    // 循环遍历每个properties字段属性
     for (const key in _schema.properties) {
       // 拿取properties下的每个字段key
       const props = _schema.properties[key]
@@ -116,7 +120,7 @@ const resetSchemaData = function() {
           if (pKey.indexOf('Option') < 0) {
             dtoProps[pKey] = props[pKey]
           }
-        } 
+        }
           // 将指定的comName的option属性存放到dtoProps中
           dtoProps = Object.assign({},dtoProps, {option: props[`${comName}Option`]})
 
@@ -124,7 +128,27 @@ const resetSchemaData = function() {
           if(required && required.find(item => item === key)){
               dtoProps.option.required = true
           }
-          // 将处理好的字段存放到dtoSchema的properties中  
+
+          // 为 create_time 字段添加时间格式化器（如果没有 formatter）
+          if (key === 'create_time' && comName === 'table' && !dtoProps.option.formatter) {
+            dtoProps.option.formatter = (value) => {
+              if (!value) return '-'
+              const date = new Date(value)
+              const year = date.getFullYear()
+              const month = String(date.getMonth() + 1).padStart(2, '0')
+              const day = String(date.getDate()).padStart(2, '0')
+              const hours = String(date.getHours()).padStart(2, '0')
+              const minutes = String(date.getMinutes()).padStart(2, '0')
+              const seconds = String(date.getSeconds()).padStart(2, '0')
+              return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+            }
+            // 如果没有 comType，添加 textFormat
+            if (!dtoProps.option.comType) {
+              dtoProps.option.comType = 'textFormat'
+            }
+          }
+
+          // 将处理好的字段存放到dtoSchema的properties中
           dtoSchema.properties[key] = dtoProps
       }
     }

@@ -111,7 +111,12 @@ module.exports = (_app) => {
   modelList.forEach(item => {
     const {model, project} = item;
     for (const projectKey in project){
+      const originalModelKey = project[projectKey].modelKey;
       project[projectKey] = projectExtendModel(model, project[projectKey])
+      // 确保 modelKey 在合并后被保留
+      if (originalModelKey) {
+        project[projectKey].modelKey = originalModelKey;
+      }
     }
   })
 
