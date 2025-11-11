@@ -9,6 +9,7 @@ import attributeConfig from "./complex-view/attribute-config/attribute-config.vu
 import paramSelector from "./complex-view/param-selector/param-selector.vue"
 import tagInput from "./complex-view/tag-input/tag-input.vue"
 import tiptapEditor from "./complex-view/tiptap-editor/tiptap-editor.vue"
+import passwordInput from "./complex-view/password-input/password-input.vue"
 
 // 业务扩展 form-item 配置
 import BusinessFormItemConfig from '$businessFormItemConfig'
@@ -46,6 +47,9 @@ const FormItemConfig = {
   },
   'tiptap-editor': {
     component: tiptapEditor
+  },
+  'password-input': {
+    component: passwordInput
   }
 }
 

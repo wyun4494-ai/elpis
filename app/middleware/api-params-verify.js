@@ -69,9 +69,38 @@ module.exports = (app) => {
     // 如果验证失败，返回错误响应
     if (!valid){
       ctx.status = 200;                          // HTTP状态码设为200
+
+      // 将英文错误消息转换为中文
+      let errorMessage = '参数验证失败'
+      if (validate.errors && validate.errors.length > 0) {
+        const error = validate.errors[0]
+        const { keyword, dataPath, params } = error
+
+        // 根据验证错误类型生成中文错误消息
+        if (keyword === 'minLength') {
+          errorMessage = `${dataPath || '字段'}长度不能少于 ${params.limit} 个字符`
+        } else if (keyword === 'maxLength') {
+          errorMessage = `${dataPath || '字段'}长度不能超过 ${params.limit} 个字符`
+        } else if (keyword === 'minimum') {
+          errorMessage = `${dataPath || '字段'}不能小于 ${params.limit}`
+        } else if (keyword === 'maximum') {
+          errorMessage = `${dataPath || '字段'}不能大于 ${params.limit}`
+        } else if (keyword === 'type') {
+          errorMessage = `${dataPath || '字段'}类型错误，应为 ${params.type}`
+        } else if (keyword === 'required') {
+          errorMessage = `${dataPath || '字段'}为必填项`
+        } else if (keyword === 'enum') {
+          errorMessage = `${dataPath || '字段'}值不在允许的范围内`
+        } else if (keyword === 'pattern') {
+          errorMessage = `${dataPath || '字段'}格式不正确`
+        } else {
+          errorMessage = `参数验证失败: ${ajv.errorsText(validate.errors)}`
+        }
+      }
+
       ctx.body = {                               // 返回错误信息
         success: false,                          // 标记请求处理失败
-        message: `request validate fail ${ajv.errorsText(validate.errors)} `, // 错误详情
+        message: errorMessage,                   // 中文错误详情
         code: 442                                // 自定义错误码
       }
       return                                     // 中断后续处理流程
