@@ -1,6 +1,6 @@
 {
   "name": "@lesheng/elpis",
-  "version": "1.2.2",
+  "version": "1.2.4",
   "description": "",
   "repository": {
     "type": "git",
@@ -12,6 +12,7 @@
   "main": "index.js",
   "files": [
     "index.js",
+    "elpis-core",
     "app",
     "model",
     "config"
@@ -86,7 +87,7 @@
     "pinia": "^2.1.6",
     "style-loader": "^4.0.0",
     "superagent": "^8.1.2",
-    "terser-webpack-plugin": "^2.3.5",
+    "terser-webpack-plugin": "^5.3.14",
     "url-loader": "^4.1.1",
     "vue": "^3.3.4",
     "vue-eslint-parser": "^10.2.0",
