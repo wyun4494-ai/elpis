@@ -47,7 +47,14 @@ const webpackProdConfig = merge.smart(baseConfig, {
         // 1. 提取 loader（负责提取 CSS）
         MiniCssExtractPlugin.loader,
         // 2. CSS loader（负责解析 CSS）
-        `happypack/loader?id=css`
+        // 注意：不使用 HappyPack 处理 CSS，因为 css-loader v7+ 与 HappyPack 不兼容
+        // Webpack 5 已内置并行处理，无需 HappyPack
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1
+          }
+        }
       ]
     }, {
       test: /\.js$/,
@@ -108,18 +115,6 @@ const webpackProdConfig = merge.smart(baseConfig, {
       }]
     }),
 
-    // 多线程打包 css 
-      new HappyPack({
-      ...happypackCommonConfig,
-      id: 'css',
-      loaders: [{
-        loader: 'css-loader',
-        options: {
-          importLoaders: 1
-        }
-      }]
-    }),
-
     // 浏览器在请求资源时，不会发送用户的身份凭证
     new HtmlWebpackInjectAttributesPlugin({
       // 确保加载外部资源时不携带身份凭证
@@ -135,11 +130,10 @@ const webpackProdConfig = merge.smart(baseConfig, {
 
     // 定义用于执行代码压缩的插件
     minimizer: [
-      new TerserWebpackPlugin({  
-        parallel: true, // 启用缓存来加速构建过程
-        cache: true, // 利用多核 CPU 的优势来提升构建速度
+      new TerserWebpackPlugin({
+        parallel: true, // 利用多核 CPU 的优势来提升构建速度
         extractComments: false, // 禁用提取注释文件，避免冲突
-        terserOptions: { 
+        terserOptions: {
           compress: {
             drop_console: true, // 删除所有 console.* 语句
             drop_debugger: true // 删除所有 debugger 语句

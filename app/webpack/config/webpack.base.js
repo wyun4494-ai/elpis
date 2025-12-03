@@ -77,6 +77,14 @@ module.exports = merge.smart({
         options: {
           compilerOptions: {
             whitespace: 'preserve'
+          },
+          // 修复 Windows 路径问题：配置 PostCSS 处理
+          // 禁用 PostCSS 的 URL 处理，避免 Windows 路径中的反斜杠被误解
+          postcss: {
+            // 使用空的 PostCSS 配置，不处理任何 CSS
+            plugins: [],
+            // 禁用 PostCSS 的 URL 处理
+            exec: false
           }
         }
       }
