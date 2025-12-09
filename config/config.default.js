@@ -1,4 +1,4 @@
 module.exports = {
   name: 'elpis',
-  desc: 'elpis-demo desc'
+  desc: 'schema-hub desc'
 }
