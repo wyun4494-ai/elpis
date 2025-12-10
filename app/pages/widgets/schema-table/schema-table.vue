@@ -356,8 +356,14 @@ const fetchTableData = async () => {
     return;
   }
 
-  tableData.value = buildTableData(res.data);
-  total.value = res.metadata.total;
+  // 先清空表格数据，防止数据重复追加
+  tableData.value = [];
+  
+  // 使用 nextTick 确保 DOM 更新后再赋值新数据
+  nextTick(() => {
+    tableData.value = buildTableData(res.data);
+    total.value = res.metadata.total;
+  });
 
   // 修复复选框全选按钮异常选中的 Bug
   // 问题根源：Element Plus 的全选按钮渲染状态未正确更新
@@ -484,6 +490,9 @@ const onCurrentPageChange = (value) => {
  * @param {string} sortInfo.order - 排序方向（ascending/descending/null）
  */
 const handleSortChange = ({ prop, order }) => {
+  // 重新加载数据（排序后回到第一页）
+  currentPage.value = 1;
+  
   // 更新排序状态
   if (order) {
     sortField.value = prop;
@@ -494,9 +503,11 @@ const handleSortChange = ({ prop, order }) => {
     sortOrder.value = '';
   }
 
-  // 重新加载数据（排序后回到第一页）
-  currentPage.value = 1;
-  loadTableData();
+  // 清空表格数据，防止排序时数据重复显示
+  tableData.value = [];
+  
+  // 立即加载数据（不使用防抖，确保排序立即生效）
+  fetchTableData();
 }
 
 /**
