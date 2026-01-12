@@ -203,6 +203,10 @@ module.exports = merge.smart({
       const businessHeaderConfig = path.resolve(process.cwd(), './app/pages/widgets/header-container/header-config.js')
       aliasMap['$businessHeaderConfig'] = fs.existsSync(businessHeaderConfig) ? businessHeaderConfig : blankModulePath
 
+      // detail-panel 业务扩展 配置
+      const businessDetailPanelConfig = path.resolve(process.cwd(), './app/pages/widgets/detail-panel/detail-panel-config.js')
+      aliasMap['$businessDetailPanelConfig'] = fs.existsSync(businessDetailPanelConfig) ? businessDetailPanelConfig : blankModulePath
+
       return {
         'vue': 'vue',
         $elpisPage: path.resolve(__dirname, '../../pages'),

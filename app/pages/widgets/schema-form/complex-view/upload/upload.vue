@@ -225,10 +225,15 @@ onMounted(() => {
 })
 
 /**
- * 监听 model 和 schema 变化，重新初始化数据
+ * 监听 model 变化，重新初始化数据
+ * 注意：只在 model 真正变化时才重新初始化，避免覆盖用户上传的图片
  */
-watch([model, schema], () => {
-  initData()
+watch(model, (newVal, oldVal) => {
+  // 只有当 model 真正变化时才重新初始化
+  // 避免在用户上传图片后被重置
+  if (newVal !== oldVal) {
+    initData()
+  }
 }, {
   deep: true,
   immediate: false
@@ -239,27 +244,33 @@ watch([model, schema], () => {
  *
  * 处理流程：
  * 1. 从后端响应中提取图片 URL
- * 2. 更新文件列表中的 URL
- * 3. 更新表单值
+ * 2. 更新文件列表
+ * 3. 直接设置 dotValue（不依赖 fileList 的 url 字段）
  * 4. 触发校验
  *
  * @param {Object} response - 后端响应 { success: true, data: { url: 'http://xxx/image.jpg' } }
  * @param {Object} file - 上传的文件对象
- * @param {Array} fileListData - 文件列表
+ * @param {Array} fileListData - Element Plus 传入的文件列表
  */
 const handleSuccess = (response, file, fileListData) => {
   if (response && response.success && response.data) {
     // 后端返回 { success: true, data: { url: 'http://xxx/image.jpg' } }
     const url = typeof response.data === 'string' ? response.data : response.data.url
 
-    // 更新文件的url
-    const fileIndex = fileList.value.findIndex(f => f.uid === file.uid)
-    if (fileIndex !== -1) {
-      fileList.value[fileIndex].url = url
-    }
+    // 使用 Element Plus 传入的 fileListData 来更新 fileList
+    fileList.value = fileListData
 
-    // 更新dotValue
-    updateDotValue()
+    // 直接设置 dotValue，不依赖 fileList 的 url 字段
+    // 因为 Element Plus 的 fileList 在上传成功时可能还没有更新 url
+    if (isMultiple.value) {
+      // 多图模式：从 fileListData 中提取所有 URL
+      const urls = fileListData.map(f => f.url || f.response?.data || '').filter(u => u)
+      dotValue.value = urls
+    } else {
+      // 单图模式：直接使用当前上传的 URL
+      dotValue.value = url
+    }
+    
     ElMessage.success('上传成功')
   } else {
     ElMessage.error('上传失败')
@@ -351,14 +362,26 @@ const beforeUpload = (file) => {
  * @returns {Object} 表单值对象
  */
 const getValue = () => {
-  if (!dotValue.value) return {}
-
   // 多图模式返回数组，单图模式返回字符串
-  const value = isMultiple.value ? dotValue.value : dotValue.value
+  let value = isMultiple.value ? dotValue.value : dotValue.value
 
-  return value ? {
+  // 如果值为空（空字符串或空数组），返回 undefined，这样后端不会更新该字段
+  // 这样可以保留数据库中已有的图片 URL
+  if (isMultiple.value) {
+    // 多图模式：空数组返回 undefined
+    if (!value || value.length === 0) {
+      value = undefined
+    }
+  } else {
+    // 单图模式：空字符串返回 undefined
+    if (!value || value === '') {
+      value = undefined
+    }
+  }
+
+  return {
     [schemaKey]: value
-  } : {}
+  }
 }
 
 /**

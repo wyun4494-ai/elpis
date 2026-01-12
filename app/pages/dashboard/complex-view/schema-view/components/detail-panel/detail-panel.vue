@@ -2,7 +2,7 @@
   <el-drawer
     v-model="isShow"
     directory="rtl"
-    size="550"
+    :size="drawerSize"
     destroy-on-close
   >
     <!--  -->
@@ -12,7 +12,18 @@
       </h2>
     </template>
     <template #default>
+      <!-- 自定义组件模式 -->
+      <component
+        v-if="customComponent"
+        :is="customComponent"
+        v-loading="loading"
+        :model="mainValue"
+        :schema="components[name]?.schema"
+        :mainKey="mainKey"
+      />
+      <!-- 默认详情面板模式 -->
       <el-card
+        v-else
         v-loading="loading"
         shadow="always"
         class="detail-panel"
@@ -51,10 +62,11 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, inject, computed, markRaw } from 'vue';
 import $curl from '$elpisCommon/curl.js'
 import { ElNotification } from 'element-plus';
 import DOMPurify from 'dompurify';
+import DetailPanelConfig from '$businessDetailPanelConfig'
 
 const isShow = ref(false)
 const loading = ref(false)
@@ -69,6 +81,20 @@ const {
   components
 } = inject('schemaViewData')
 
+// 计算自定义组件
+const customComponent = computed(() => {
+  const config = components.value[name.value]?.config
+  if (config && config.comType && DetailPanelConfig[config.comType]) {
+    return markRaw(DetailPanelConfig[config.comType].component)
+  }
+  return null
+})
+
+// 计算抽屉尺寸
+const drawerSize = computed(() => {
+  const config = components.value[name.value]?.config
+  return config?.size || '550'
+})
 
 // 显示表单
 const show = (rowData) => {
@@ -81,12 +107,20 @@ const show = (rowData) => {
 
   isShow.value = true
 
-  fetchFormData()
+  // 如果不是自定义组件，才需要获取数据
+  if (!customComponent.value) {
+    fetchFormData()
+  }
 }
 
 
 // 格式化显示值
 const formatValue = (key, value, item) => {
+  // 如果配置了 detailPanelOption.formatter，使用自定义格式化函数
+  if (item.detailPanelOption && typeof item.detailPanelOption.formatter === 'function') {
+    return item.detailPanelOption.formatter(value)
+  }
+
   // 检查是否是状态字段（支持 status 和 shelf_status）
   if (key === 'status' || key === 'shelf_status' || item.label === '状态') {
     if (value === 0 || value === '0') {

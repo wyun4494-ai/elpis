@@ -137,10 +137,13 @@ const save = async () => {
 
   loading.value = true
 
+  // 获取表单值
+  const formValues = schemaFormRef.value.getValue()
+
   // 构建请求数据，包含权限验证所需的参数
   const requestData = {
     [mainKey.value]: mainValue.value,
-    ...schemaFormRef.value.getValue()
+    ...formValues
   }
 
   // 添加权限验证参数

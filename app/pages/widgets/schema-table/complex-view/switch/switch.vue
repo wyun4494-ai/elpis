@@ -1,7 +1,10 @@
 <template>
   <div class="table-switch-wrapper">
     <!-- 只有当 showLabel 为 true 时才显示标签 -->
-    <span v-if="schema.option?.showLabel !== false" class="switch-label">{{ schema.option?.label || '上架:' }}</span>
+    <span
+      v-if="schema.option?.showLabel !== false"
+      class="switch-label"
+    >{{ schema.option?.label || '上架:' }}</span>
     <el-switch
       v-model="currentValue"
       :active-value="schema.option?.activeValue ?? 1"
@@ -53,20 +56,38 @@ const handleChange = async (value) => {
 
   const activeValue = props.schema.option?.activeValue ?? 1
 
-  // 检查：总库存为0时不能上架
-  if (value === activeValue && props.rowData.inventory === 0) {
-    ElMessage.error('总库存为0，不能上架')
-    // 恢复到原来的状态
-    currentValue.value = props.modelValue
-    return
-  }
+  // 业务逻辑验证（根据 schema.option.validateRules 配置）
+  const validateRules = props.schema.option?.validateRules || []
+  
+  for (const rule of validateRules) {
+    // 商品上架验证：检查库存
+    if (rule === 'checkInventory' && value === activeValue && props.rowData.inventory === 0) {
+      ElMessage.error('总库存为0，不能上架')
+      currentValue.value = props.modelValue
+      return
+    }
+    
+    // 商品上架验证：检查审核状态
+    if (rule === 'checkAuditStatus' && value === activeValue && props.rowData.audit_status !== 1) {
+      ElMessage.error('商品未审核通过，不能上架')
+      currentValue.value = props.modelValue
+      return
+    }
 
-  // 检查：未审核的商品不能上架
-  if (value === activeValue && props.rowData.audit_status !== 1) {
-    ElMessage.error('商品未审核通过，不能上架')
-    // 恢复到原来的状态
-    currentValue.value = props.modelValue
-    return
+    // 秒杀活动开启验证：检查开始时间
+    if (rule === 'checkStartTime' && value === activeValue) {
+      const startTime = props.rowData.start_time
+      if (startTime) {
+        const startDate = new Date(startTime)
+        const now = new Date()
+        
+        if (startDate > now) {
+          ElMessage.error('活动开始时间未到，不能开启活动')
+          currentValue.value = props.modelValue
+          return
+        }
+      }
+    }
   }
 
   loading.value = true
